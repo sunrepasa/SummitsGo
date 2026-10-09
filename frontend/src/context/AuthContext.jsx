@@ -1,12 +1,11 @@
+import { AUTH_STORAGE_KEY } from '../config'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-
-const STORAGE_KEY = 'summitsgo_auth'
 
 const AuthContext = createContext(null)
 
 function readStored() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY)
     return raw ? JSON.parse(raw) : null
   } catch {
     return null
@@ -17,12 +16,12 @@ export function AuthProvider({ children }) {
   const [auth, setAuth] = useState(readStored)
 
   const login = useCallback((data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data))
     setAuth(data)
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(AUTH_STORAGE_KEY)
     setAuth(null)
   }, [])
 
