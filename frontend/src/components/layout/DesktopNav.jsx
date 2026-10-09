@@ -11,6 +11,7 @@ import {
   User,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import Avatar from '../ui/Avatar'
 
 const menu = [
   { to: '/', label: 'Beranda', end: true },
@@ -21,14 +22,6 @@ const menu = [
 const iconBtn =
   'flex size-9 items-center justify-center rounded-full border border-line bg-paper text-ink hover:bg-stone'
 
-function initialsOf(name = '') {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join('')
-}
 
 function SearchBox() {
   const navigate = useNavigate()
@@ -111,9 +104,7 @@ function UserMenu({ user }) {
         aria-expanded={open}
         className="flex items-center gap-2 rounded-full border border-line bg-paper py-[3px] pl-[3px] pr-2.5"
       >
-        <span className="flex size-[30px] items-center justify-center rounded-full bg-linear-to-br from-[#3E6B54] to-[#16281F] font-heading text-[11px] font-bold text-white">
-          {initialsOf(user.name)}
-        </span>
+        <Avatar name={user.name} size={30} />
         <span className="text-[12.5px] font-semibold">{user.name}</span>
         <ChevronDown size={14} className="text-mute" />
       </button>
