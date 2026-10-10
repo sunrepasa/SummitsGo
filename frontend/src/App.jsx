@@ -3,6 +3,7 @@ import UserLayout from './components/layout/UserLayout'
 import TopBar from './components/layout/TopBar'
 import { useAuth } from './context/AuthContext'
 import SearchPage from './pages/user/Search'
+import Profile from './pages/user/Profile'
 
 function Placeholder({ title, children }) {
   return (
@@ -13,31 +14,6 @@ function Placeholder({ title, children }) {
         {children}
       </div>
     </>
-  )
-}
-
-function ProfilePlaceholder() {
-  const { isLoggedIn, user, logout } = useAuth()
-
-  return (
-    <Placeholder title="Profil">
-      <div className="pt-6 text-[13px] text-mute">
-        {isLoggedIn ? (
-          <>
-            <p>Masuk sebagai {user.name} (@{user.username})</p>
-            <button
-              type="button"
-              onClick={logout}
-              className="mt-4 rounded-full border border-line bg-paper px-5 py-2.5 font-semibold text-warn"
-            >
-              Keluar
-            </button>
-          </>
-        ) : (
-          <p>Kamu belum masuk.</p>
-        )}
-      </div>
-    </Placeholder>
   )
 }
 
@@ -77,7 +53,7 @@ export default function App() {
         <Route path="/checklist" element={<Placeholder title="Checklist Saya" />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/logbook" element={<Placeholder title="Logbook" />} />
-        <Route path="/profile" element={<ProfilePlaceholder />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />
         <Route path="/settings" element={<Placeholder title="Pengaturan & Privasi" />} />
         <Route path="/saved-maps" element={<Placeholder title="Peta Tersimpan" />} />
