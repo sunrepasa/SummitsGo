@@ -68,5 +68,7 @@ export function useSearchFilters() {
       else p.delete('maxElevation')
     })
 
-  return { params, filters: parseFilters(params), setValue, toggleValue, setElevation }
+  const clear = (...keys) => update((p) => keys.forEach((key) => p.delete(key)))
+
+  return { params, filters: parseFilters(params), setValue, toggleValue, setElevation, clear }
 }

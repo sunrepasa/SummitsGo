@@ -1,6 +1,7 @@
 import { Mountain, Search } from 'lucide-react'
 import TopBar from '../../components/layout/TopBar'
 import FilterPanel from '../../components/search/FilterPanel'
+import FilterChips from '../../components/search/FilterChips'
 import MountainRow, { MountainRowSkeleton } from '../../components/mountain/MountainRow'
 import { getMountains, getProvinces } from '../../api/mountain'
 import { useAsync } from '../../hooks/useAsync'
@@ -80,6 +81,7 @@ export default function SearchPage() {
               className="w-full bg-transparent text-[13px] outline-none placeholder:text-mute"
             />
           </label>
+          <FilterChips provinces={provinces.data ?? []} count={list?.length} />
         </div>
       </TopBar>
 
