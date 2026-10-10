@@ -2,6 +2,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom'
 import UserLayout from './components/layout/UserLayout'
 import TopBar from './components/layout/TopBar'
 import { useAuth } from './context/AuthContext'
+import SearchPage from './pages/user/Search'
 
 function Placeholder({ title, children }) {
   return (
@@ -74,7 +75,7 @@ export default function App() {
       <Route element={<UserLayout />}>
         <Route path="/" element={<Placeholder title="Beranda" />} />
         <Route path="/checklist" element={<Placeholder title="Checklist Saya" />} />
-        <Route path="/search" element={<Placeholder title="Cari Gunung" />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/logbook" element={<Placeholder title="Logbook" />} />
         <Route path="/profile" element={<ProfilePlaceholder />} />
         <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />

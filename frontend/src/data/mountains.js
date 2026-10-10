@@ -7,7 +7,7 @@ const covers = {
   dusk: ['#6B4E6B', '#241A26'],
 }
 
-export const mountains = [
+const rawMountains = [
   { id: 'rinjani', name: 'Gunung Rinjani', location: 'Lombok', elevation: 3726, difficulty: 'medium', status: 'quota_full', rating: 4.8, reviewCount: 340, popularity: 1200, addedAt: '2026-06-10', cover: covers.sky },
   { id: 'semeru', name: 'Gunung Semeru', location: 'Jawa Timur', elevation: 3676, difficulty: 'hard', status: 'open', rating: 4.7, reviewCount: 210, popularity: 980, addedAt: '2026-06-12', cover: covers.forest },
   { id: 'prau', name: 'Gunung Prau', location: 'Wonosobo', elevation: 2565, difficulty: 'beginner', status: 'open', rating: 4.7, reviewCount: 312, popularity: 730, addedAt: '2026-06-20', cover: covers.earth },
@@ -21,6 +21,23 @@ export const mountains = [
   { id: 'sindoro', name: 'Gunung Sindoro', location: 'Temanggung', elevation: 3153, difficulty: 'medium', status: 'open', rating: 4.4, reviewCount: 77, popularity: 200, addedAt: '2026-10-02', cover: covers.dusk },
   { id: 'telomoyo', name: 'Gunung Telomoyo', location: 'Magelang', elevation: 2211, difficulty: 'beginner', status: 'open', rating: 4.3, reviewCount: 54, popularity: 90, addedAt: '2026-09-15', cover: covers.moss },
 ]
+
+const provinces = {
+  rinjani: 'Nusa Tenggara Barat',
+  semeru: 'Jawa Timur',
+  prau: 'Jawa Tengah',
+  merbabu: 'Jawa Tengah',
+  andong: 'Jawa Tengah',
+  bromo: 'Jawa Timur',
+  ijen: 'Jawa Timur',
+  papandayan: 'Jawa Barat',
+  lawu: 'Jawa Tengah',
+  gede: 'Jawa Barat',
+  sindoro: 'Jawa Tengah',
+  telomoyo: 'Jawa Tengah',
+}
+
+export const mountains = rawMountains.map((m) => ({ ...m, province: provinces[m.id] }))
 
 export const heroSlides = [
   { id: 'slide-1', eyebrow: 'Rencanakan pendakianmu', title: 'Temukan info gunung yang lengkap & terpercaya', cta: 'Mulai Jelajah', to: '/search', bg: ['#24473A', '#142822'] },

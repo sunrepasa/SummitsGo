@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Bell,
   ChevronDown,
@@ -25,12 +25,17 @@ const iconBtn =
 
 function SearchBox() {
   const navigate = useNavigate()
-  const [query, setQuery] = useState('')
+  const { pathname } = useLocation()
+  const [params] = useSearchParams()
+  const [query, setQuery] = useState(params.get('q') ?? '')
 
   const onSubmit = (e) => {
     e.preventDefault()
     const q = query.trim()
-    navigate(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+    const next = new URLSearchParams(pathname === '/search' ? params : undefined)
+    if (q) next.set('q', q)
+    else next.delete('q')
+    navigate({ pathname: '/search', search: next.toString() })
   }
 
   return (

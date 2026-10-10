@@ -3,3 +3,7 @@ export const difficultyVariant = { beginner: 'default', medium: 'default', hard:
 
 export const statusLabel = { open: 'Buka', quota_full: 'Kuota Penuh', closed: 'Tutup' }
 export const statusVariant = { open: 'ok', quota_full: 'warn', closed: 'warn' }
+
+export const formatElevation = (meters) => `${meters.toLocaleString('id-ID')} mdpl`
+
+export const coverBackground = ([from, to]) => `linear-gradient(160deg, ${from}, ${to})` 
