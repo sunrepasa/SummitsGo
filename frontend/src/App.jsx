@@ -53,6 +53,8 @@ export default function App() {
         <Route path="/checklist" element={<Placeholder title="Checklist Saya" />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/logbook" element={<Placeholder title="Logbook" />} />
+        <Route path="/logbook/:id" element={<Placeholder title="Detail Logbook" />} />
+        <Route path="/u/:username" element={<Placeholder title="Profil Publik" />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />
         <Route path="/settings" element={<Placeholder title="Pengaturan & Privasi" />} />

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Bell,
@@ -11,6 +11,7 @@ import {
   User,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useDismiss } from '../../hooks/useDismiss'
 import Avatar from '../ui/Avatar'
 
 const menu = [
@@ -21,7 +22,6 @@ const menu = [
 
 const iconBtn =
   'flex size-9 items-center justify-center rounded-full border border-line bg-paper text-ink hover:bg-stone'
-
 
 function SearchBox() {
   const navigate = useNavigate()
@@ -41,7 +41,7 @@ function SearchBox() {
   return (
     <form
       onSubmit={onSubmit}
-      className="flex max-w-[340px] flex-1 items-center gap-2 rounded-full border border-line bg-paper px-3.5 py-2.5 focus-within:border-pine"
+      className="hidden w-[200px] items-center gap-2 rounded-full border border-line bg-paper px-3.5 py-2.5 focus-within:border-pine lg:flex xl:w-[320px] 2xl:w-[300px]"
     >
       <Search size={16} className="shrink-0 text-mute" />
       <input
@@ -49,7 +49,7 @@ function SearchBox() {
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Cari gunung"
         placeholder="Cari gunung atau lokasi..."
-        className="w-full bg-transparent text-[12.5px] outline-none placeholder:text-mute"
+        className="w-full min-w-0 bg-transparent text-[12.5px] outline-none placeholder:text-mute"
       />
     </form>
   )
@@ -77,22 +77,7 @@ function GuestActions() {
 function UserMenu({ user }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onMouseDown = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onMouseDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onMouseDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
+  useDismiss(ref, open, () => setOpen(false))
 
   const items = [
     { to: '/profile', label: 'Profil', icon: User },
@@ -142,12 +127,13 @@ export default function DesktopNav() {
 
   return (
     <header className="sticky top-0 z-30 hidden border-b border-line bg-stone md:block">
-      <div className="mx-auto flex max-w-[1100px] items-center gap-7 px-6 py-3.5">
-        <Link to="/" className="flex items-center gap-[9px]">
+      {/* 2xl: tiga kolom supaya menu tepat di tengah; di bawahnya menu menempel ke logo karena ruang kanan tidak cukup */}
+      <div className="page-container flex items-center gap-4 py-3.5 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <Link to="/" className="flex w-fit items-center gap-[9px]">
           <span className="flex size-8 items-center justify-center rounded-[9px] bg-pine text-white">
             <Mountain size={18} />
           </span>
-          <span className="font-heading text-lg font-bold">SummitsGo</span>
+          <span className="hidden font-heading text-lg font-bold lg:inline">SummitsGo</span>
         </Link>
 
         <nav className="flex gap-1.5">
@@ -169,9 +155,11 @@ export default function DesktopNav() {
           ))}
         </nav>
 
-        <SearchBox />
-
-        <div className="ml-auto flex items-center gap-2.5">
+        <div className="ml-auto flex items-center gap-2.5 2xl:ml-0 2xl:min-w-0 2xl:justify-end">
+          <SearchBox />
+          <Link to="/search" className={`${iconBtn} lg:hidden`} aria-label="Cari gunung">
+            <Search size={17} />
+          </Link>
           <Link to="/saved-maps" className={iconBtn} aria-label="Peta Tersimpan" title="Peta Tersimpan">
             <MapIcon size={17} />
           </Link>

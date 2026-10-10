@@ -1,8 +1,7 @@
 import client from './client'
 import { USE_MOCK } from '../config'
 import { heroSlides, mountains } from '../data/mountains'
-
-const wait = (data, ms = 300) => new Promise((resolve) => setTimeout(() => resolve(data), ms))
+import { wait } from './mockDelay'
 
 const sorters = {
   popular: (a, b) => b.popularity - a.popularity,

@@ -30,3 +30,18 @@ body {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
+.page-container {
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .page-container { padding-inline: 2rem; }
+}
+
+@media (min-width: 1280px) {
+  .page-container { padding-inline: 3rem; }
+}
+
