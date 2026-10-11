@@ -1,5 +1,5 @@
-import { AUTH_STORAGE_KEY } from '../config'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { AUTH_STORAGE_KEY } from '../config'
 
 const AuthContext = createContext(null)
 
@@ -25,6 +25,14 @@ export function AuthProvider({ children }) {
     setAuth(null)
   }, [])
 
+  const updateUser = useCallback((patch) => {
+    const stored = readStored()
+    if (!stored) return
+    const next = { ...stored, user: { ...stored.user, ...patch } }
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next))
+    setAuth(next)
+  }, [])
+
   const value = useMemo(
     () => ({
       user: auth?.user ?? null,
@@ -33,8 +41,9 @@ export function AuthProvider({ children }) {
       isLoggedIn: Boolean(auth?.token),
       login,
       logout,
+      updateUser,
     }),
-    [auth, login, logout],
+    [auth, login, logout, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { BookOpen, ListChecks, Star, User } from 'lucide-react'
 import TopBar from '../../components/layout/TopBar'
 import GuestPrompt from '../../components/auth/GuestPrompt'
 import ProfileCard from '../../components/profile/ProfileCard'
 import ProfileMenu from '../../components/profile/ProfileMenu'
+import EditProfileModal from '../../components/profile/EditProfileModal'
 import LogbookFeedCard, { LogbookFeedCardSkeleton } from '../../components/logbook/LogbookFeedCard'
 import { useAuth } from '../../context/AuthContext'
 import { getMyLogbooks } from '../../api/logbook'
@@ -63,27 +65,32 @@ function ProfileLoggedIn() {
   const { user, logout } = useAuth()
   const logbooks = useAsync(getMyLogbooks, [])
   const stats = logbooks.data ? getLogbookStats(logbooks.data) : null
+  const [editing, setEditing] = useState(false)
 
   return (
-    <div className="px-5 pb-6 pt-4 md:grid md:grid-cols-[300px_1fr] md:items-start md:gap-8 md:px-0 md:pt-7 lg:grid-cols-[360px_1fr]">
-      <div className="md:sticky md:top-[86px]">
-        <ProfileCard user={user} stats={stats} />
+    <>
+      <div className="px-5 pb-6 pt-4 md:grid md:grid-cols-[300px_1fr] md:items-start md:gap-8 md:px-0 md:pt-7 lg:grid-cols-[360px_1fr]">
+        <div className="md:sticky md:top-[86px]">
+          <ProfileCard user={user} stats={stats} onEdit={() => setEditing(true)} />
+        </div>
+
+        <section>
+          <h2 className="pb-2.5 pt-4 font-heading text-[14.5px] font-bold md:pt-0 md:text-lg">Logbook</h2>
+          <LogbookFeed state={logbooks} />
+
+          {/* sementara — pindah ke halaman Pengaturan & Privasi saat halaman itu dibuat */}
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-6 rounded-full border border-line bg-paper px-5 py-2.5 text-[13px] font-semibold text-warn"
+          >
+            Keluar
+          </button>
+        </section>
       </div>
 
-      <section>
-        <h2 className="pb-2.5 pt-4 font-heading text-[14.5px] font-bold md:pt-0 md:text-lg">Logbook</h2>
-        <LogbookFeed state={logbooks} />
-
-        {/* sementara — pindah ke halaman Pengaturan & Privasi saat halaman itu dibuat */}
-        <button
-          type="button"
-          onClick={logout}
-          className="mt-6 rounded-full border border-line bg-paper px-5 py-2.5 text-[13px] font-semibold text-warn"
-        >
-          Keluar
-        </button>
-      </section>
-    </div>
+      {editing && <EditProfileModal onClose={() => setEditing(false)} />}
+    </>
   )
 }
 

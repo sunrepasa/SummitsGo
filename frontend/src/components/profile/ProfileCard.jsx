@@ -11,7 +11,7 @@ function Stat({ value, label }) {
   )
 }
 
-export default function ProfileCard({ user, stats }) {
+export default function ProfileCard({ user, stats, onEdit }) {
   const publicPath = `/u/${user.username}`
 
   return (
@@ -41,6 +41,7 @@ export default function ProfileCard({ user, stats }) {
 
         <button
           type="button"
+          onClick={onEdit}
           className="self-start rounded-full bg-[#E7F0E1] px-[11px] py-[7px] text-[11px] font-semibold text-pine-deep md:mt-4 md:w-full md:self-stretch md:rounded-[11px] md:border md:border-line md:bg-paper md:px-[18px] md:py-2.5 md:text-[13px] md:text-ink md:hover:bg-stone"
         >
           Edit<span className="hidden md:inline"> Profil</span>

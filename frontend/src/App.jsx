@@ -26,7 +26,10 @@ function DevLogin() {
   const { state } = useLocation()
 
   const enter = () => {
-    login({ token: 'dev-token', user: { name: 'Sayz', username: 'sayz', role: 'user' } })
+    login({
+      token: 'dev-token',
+      user: { name: 'Sayz', username: 'sayz', email: 'sayz@email.com', role: 'user', usernameChangedAt: null },
+    })
     navigate(state?.from ?? '/')
   }
 

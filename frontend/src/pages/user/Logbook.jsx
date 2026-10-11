@@ -6,6 +6,7 @@ import DraftCard from '../../components/logbook/DraftCard'
 import AddLogbookModal from '../../components/logbook/AddLogbookModal'
 import LogbookListItem, { LogbookListItemSkeleton } from '../../components/logbook/LogbookListItem'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import {
   confirmLogbookDraft,
   dismissLogbookDraft,
@@ -126,11 +127,13 @@ function LogbookLoggedIn() {
   const drafts = useAsync(getLogbookDrafts, [])
   const stats = logbooks.data ? getLogbookStats(logbooks.data) : null
   const [adding, setAdding] = useState(false)
+  const toast = useToast()
 
   const save = async (id) => {
     await confirmLogbookDraft(id)
     logbooks.reload()
     drafts.reload()
+    toast.success('Pendakian disimpan ke Logbook')
   }
   const dismiss = async (id) => {
     await dismissLogbookDraft(id)
@@ -140,6 +143,7 @@ function LogbookLoggedIn() {
   const saved = () => {
     setAdding(false)
     logbooks.reload()
+    toast.success('Entri logbook berhasil disimpan')
   }
 
   return (

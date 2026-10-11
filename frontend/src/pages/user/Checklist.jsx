@@ -5,6 +5,7 @@ import TopBar from '../../components/layout/TopBar'
 import ChecklistCard, { ChecklistCardSkeleton } from '../../components/checklist/ChecklistCard'
 import CreateChecklistModal from '../../components/checklist/CreateChecklistModal'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { getMyChecklists } from '../../api/checklist'
 import { useAsync } from '../../hooks/useAsync'
 
@@ -77,11 +78,13 @@ function ChecklistView({ onCreate, showCreate = false, children }) {
 function ChecklistLoggedIn() {
   const { data, error, loading, reload } = useAsync(getMyChecklists, [])
   const [creating, setCreating] = useState(false)
+  const toast = useToast()
   const openCreate = () => setCreating(true)
 
   const saved = () => {
     setCreating(false)
     reload()
+    toast.success('Checklist berhasil dibuat')
   }
 
   let body
