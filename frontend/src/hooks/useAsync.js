@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export function useAsync(fn, deps = []) {
   const [state, setState] = useState({ data: null, error: null, loading: true })
+  const [tick, setTick] = useState(0)
+  const reload = useCallback(() => setTick((t) => t + 1), [])
 
   useEffect(() => {
     let cancelled = false
@@ -17,7 +19,7 @@ export function useAsync(fn, deps = []) {
     }
     // deps dioper dari pemanggil supaya hook ini bisa dipakai ulang untuk request lain
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
+  }, [...deps, tick])
 
-  return state
+  return { ...state, reload }
 }

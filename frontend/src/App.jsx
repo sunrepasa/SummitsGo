@@ -1,9 +1,10 @@
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import UserLayout from './components/layout/UserLayout'
 import TopBar from './components/layout/TopBar'
 import { useAuth } from './context/AuthContext'
 import SearchPage from './pages/user/Search'
 import Profile from './pages/user/Profile'
+import Logbook from './pages/user/Logbook'
 
 function Placeholder({ title, children }) {
   return (
@@ -21,10 +22,11 @@ function Placeholder({ title, children }) {
 function DevLogin() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const { state } = useLocation()
 
   const enter = () => {
     login({ token: 'dev-token', user: { name: 'Sayz', username: 'sayz', role: 'user' } })
-    navigate('/')
+    navigate(state?.from ?? '/')
   }
 
   return (
@@ -52,7 +54,7 @@ export default function App() {
         <Route path="/" element={<Placeholder title="Beranda" />} />
         <Route path="/checklist" element={<Placeholder title="Checklist Saya" />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/logbook" element={<Placeholder title="Logbook" />} />
+        <Route path="/logbook" element={<Logbook />} />
         <Route path="/logbook/:id" element={<Placeholder title="Detail Logbook" />} />
         <Route path="/u/:username" element={<Placeholder title="Profil Publik" />} />
         <Route path="/profile" element={<Profile />} />

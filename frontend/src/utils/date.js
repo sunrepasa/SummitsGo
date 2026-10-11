@@ -15,3 +15,8 @@ export function formatDateRange(start, end) {
   if (a.m !== b.m) return `${a.d} ${MONTHS[a.m]} – ${b.d} ${MONTHS[b.m]} ${b.y}`
   return `${a.d}–${b.d} ${MONTHS[b.m]} ${b.y}`
 }
+
+export function formatNights(nights) {
+  if (nights == null) return null
+  return nights === 0 ? '1 hari' : `${nights + 1} hari ${nights} malam`
+}
