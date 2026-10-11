@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { BookOpen, Plus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import TopBar from '../../components/layout/TopBar'
 import DraftCard from '../../components/logbook/DraftCard'
+import AddLogbookModal from '../../components/logbook/AddLogbookModal'
 import LogbookListItem, { LogbookListItemSkeleton } from '../../components/logbook/LogbookListItem'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -123,6 +125,7 @@ function LogbookLoggedIn() {
   const logbooks = useAsync(getMyLogbooks, [])
   const drafts = useAsync(getLogbookDrafts, [])
   const stats = logbooks.data ? getLogbookStats(logbooks.data) : null
+  const [adding, setAdding] = useState(false)
 
   const save = async (id) => {
     await confirmLogbookDraft(id)
@@ -134,10 +137,24 @@ function LogbookLoggedIn() {
     drafts.reload()
   }
 
+  const saved = () => {
+    setAdding(false)
+    logbooks.reload()
+  }
+
   return (
-    <LogbookView stats={stats} drafts={drafts.data ?? []} onSave={save} onDismiss={dismiss}>
-      <History state={logbooks} />
-    </LogbookView>
+    <>
+      <LogbookView
+        stats={stats}
+        onAdd={() => setAdding(true)}
+        drafts={drafts.data ?? []}
+        onSave={save}
+        onDismiss={dismiss}
+      >
+        <History state={logbooks} />
+      </LogbookView>
+      {adding && <AddLogbookModal onClose={() => setAdding(false)} onSaved={saved} />}
+    </>
   )
 }
 

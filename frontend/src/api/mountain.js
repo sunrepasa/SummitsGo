@@ -1,6 +1,7 @@
 import client from './client'
 import { USE_MOCK } from '../config'
 import { heroSlides, mountains } from '../data/mountains'
+import { routesByMountain } from '../data/routes'
 import { wait } from './mockDelay'
 
 const sorters = {
@@ -62,5 +63,11 @@ export async function getRecommendedMountains() {
 export async function getHeroSlides() {
   if (USE_MOCK) return wait(heroSlides)
   const { data } = await client.get('/promotions')
+  return data
+}
+
+export async function getMountainRoutes(mountainId) {
+  if (USE_MOCK) return wait(routesByMountain[mountainId] ?? [], 200)
+  const { data } = await client.get(`/mountains/${mountainId}/routes`)
   return data
 }

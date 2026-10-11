@@ -3,6 +3,7 @@ import { USE_MOCK } from '../config'
 import { drafts, logbooks } from '../data/logbooks'
 import { mountains } from '../data/mountains'
 import { wait } from './mockDelay'
+import { addDays } from '../utils/date'
 
 const withMountain = ({ mountainId, ...entry }) => ({
   ...entry,
@@ -43,4 +44,31 @@ export async function dismissLogbookDraft(id) {
     return wait(null)
   }
   await client.delete(`/logbooks/drafts/${id}`)
+}
+
+export async function createLogbook({ mountainId, route, startDate, days, note, photo }) {
+  if (USE_MOCK) {
+    // foto tidak disimpan di mode mock; backend nanti menerimanya lewat multipart
+    logbooks.push({
+      id: `lb-${Date.now()}`,
+      mountainId,
+      route,
+      startDate,
+      endDate: days ? addDays(startDate, days - 1) : startDate,
+      nights: days ? days - 1 : null,
+      verified: false,
+      likes: 0,
+      note,
+    })
+    return wait(null, 500)
+  }
+
+  const body = new FormData()
+  body.append('mountainId', mountainId)
+  body.append('route', route)
+  body.append('startDate', startDate)
+  if (days) body.append('days', days)
+  if (note) body.append('note', note)
+  if (photo) body.append('photo', photo)
+  await client.post('/logbooks', body)
 }

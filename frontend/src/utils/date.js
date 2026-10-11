@@ -20,3 +20,14 @@ export function formatNights(nights) {
   if (nights == null) return null
   return nights === 0 ? '1 hari' : `${nights + 1} hari ${nights} malam`
 }
+
+export function addDays(iso, days) {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
+}
+
+export function todayIso() {
+  const now = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
