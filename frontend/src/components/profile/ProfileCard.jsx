@@ -57,15 +57,17 @@ export default function ProfileCard({ user, stats, onEdit }) {
       </div>
 
       {bio && (
-        <p className="mt-3 line-clamp-3 whitespace-pre-line break-words text-[12.5px] leading-relaxed md:text-center md:text-[13px]">
+        <p className="mt-3 line-clamp-3 whitespace-pre-line break-words text-center text-[12.5px] leading-relaxed md:text-[13px]">
           {bio}
         </p>
       )}
 
       <ProfileLinks profile={profile} />
 
+      <ProfileBadges stats={stats} hidden={display.hiddenBadges} />
+
       {joined && (
-        <p className="mt-3 flex items-center gap-1 text-[11px] text-mute md:justify-center">
+        <p className="mt-3 flex items-center justify-center gap-1 text-[11px] text-mute">
           <CalendarDays size={12} />
           Bergabung sejak {joined}
         </p>
@@ -84,8 +86,6 @@ export default function ProfileCard({ user, stats, onEdit }) {
           </>
         )}
       </div>
-
-      <ProfileBadges stats={stats} show={display.badges} />
     </section>
   )
 }

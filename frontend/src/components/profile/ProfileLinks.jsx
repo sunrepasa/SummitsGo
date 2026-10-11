@@ -41,7 +41,7 @@ export default function ProfileLinks({ profile }) {
   if (links.length === 0) return null
 
   return (
-    <ul className="mt-3 flex gap-2 md:justify-center">
+    <ul className="mt-3 flex justify-center gap-2">
       {links.map(({ id, label, href, Icon }) => (
         <li key={id}>
           <a

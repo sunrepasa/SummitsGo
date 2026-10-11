@@ -1,26 +1,29 @@
-import { Compass, Flag, Mountain } from 'lucide-react'
+import { TIER_NAMES, badgeCatalog } from '../data/badgeCatalog'
 
-const explorerTiers = [
-  { min: 10, label: 'Penjelajah 10 Gunung' },
-  { min: 5, label: 'Penjelajah 5 Gunung' },
-  { min: 3, label: 'Penjelajah 3 Gunung' },
-]
+// mengembalikan hanya lencana yang sudah didapat, masing-masing di tingkat tertingginya
+export function getEarnedBadges(stats) {
+  return badgeCatalog.flatMap((badge) => {
+    const value = badge.metric(stats)
+    const reached = badge.tiers.filter((t) => value >= t.min)
+    if (reached.length === 0) return []
 
-const elevationTiers = [
-  { min: 3000, label: 'Pendaki 3.000+ mdpl' },
-  { min: 2000, label: 'Pendaki 2.000+ mdpl' },
-]
+    const current = reached[reached.length - 1]
+    const next = badge.tiers[reached.length]
 
-// tier diurutkan dari yang tertinggi, jadi find() otomatis mengambil yang paling tinggi dicapai
-export function getBadges(stats) {
-  const badges = []
-  if (stats.trips >= 1) badges.push({ id: 'first', label: 'Pendakian Pertama', icon: Flag })
-
-  const explorer = explorerTiers.find((t) => stats.climbed >= t.min)
-  if (explorer) badges.push({ id: 'explorer', label: explorer.label, icon: Compass })
-
-  const elevation = elevationTiers.find((t) => stats.highest >= t.min)
-  if (elevation) badges.push({ id: 'elevation', label: elevation.label, icon: Mountain })
-
-  return badges
+    return [
+      {
+        id: badge.id,
+        name: badge.name,
+        icon: badge.icon,
+        image: current.image ?? badge.image,
+        tier: current.tier,
+        tierName: TIER_NAMES[current.tier],
+        label: current.label,
+        description: badge.describe(current.min),
+        valueText: badge.format(value),
+        tierCount: badge.tiers.length,
+        next: next && { tierName: TIER_NAMES[next.tier], description: badge.describe(next.min) },
+      },
+    ]
+  })
 }

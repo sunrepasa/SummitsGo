@@ -89,7 +89,7 @@ function ProfileLoggedIn() {
         </section>
       </div>
 
-      {editing && <EditProfileModal onClose={() => setEditing(false)} />}
+      {editing && <EditProfileModal stats={stats} onClose={() => setEditing(false)} />}
     </>
   )
 }

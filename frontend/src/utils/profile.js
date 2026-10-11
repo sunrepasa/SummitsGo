@@ -2,17 +2,10 @@ export const BIO_MAX = 160
 export const WEBSITE_MAX = 200
 export const SOCIAL_MAX = { tiktok: 24, instagram: 30 }
 
-export const DEFAULT_DISPLAY = {
-  joinedSince: true,
-  extraStats: true,
-  badges: true,
-  tiktok: true,
-  instagram: true,
-  website: true,
-}
-
-// sesi lama belum punya field ini, jadi semuanya diberi nilai bawaan
+// sesi atau data lama bisa membawa kunci yang sudah tidak dipakai, jadi hanya kunci ini yang diambil
 export function profileOf(user) {
+  const display = user.display ?? {}
+
   return {
     bio: user.bio ?? '',
     socials: {
@@ -20,7 +13,14 @@ export function profileOf(user) {
       instagram: user.socials?.instagram ?? '',
       website: user.socials?.website ?? '',
     },
-    display: { ...DEFAULT_DISPLAY, ...user.display },
+    display: {
+      joinedSince: display.joinedSince ?? true,
+      extraStats: display.extraStats ?? true,
+      tiktok: display.tiktok ?? true,
+      instagram: display.instagram ?? true,
+      website: display.website ?? true,
+      hiddenBadges: [...(display.hiddenBadges ?? [])].sort(),
+    },
   }
 }
 

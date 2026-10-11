@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, Lock, RefreshCw, X } from 'lucide-react'
 import Avatar from '../ui/Avatar'
+import BadgeMedal from '../ui/BadgeMedal'
 import BottomSheet from '../ui/BottomSheet'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { Field, Input, PrefixInput, Textarea } from '../ui/FormControls'
@@ -10,6 +11,7 @@ import { useToast } from '../../context/ToastContext'
 import { updateProfile } from '../../api/user'
 import { useUsernameCheck } from '../../hooks/useUsernameCheck'
 import { dateToIso, formatDateRange } from '../../utils/date'
+import { getEarnedBadges } from '../../utils/badges'
 import { BIO_MAX, SOCIAL_MAX, parseWebsite, profileOf, validateHandle } from '../../utils/profile'
 import { getUsernameUnlockDate, normalizeUsername, validateUsername } from '../../utils/username'
 
@@ -66,7 +68,7 @@ function ToggleRow({ title, description, checked, onChange }) {
   )
 }
 
-export default function EditProfileModal({ onClose }) {
+export default function EditProfileModal({ onClose, stats }) {
   const { user, updateUser } = useAuth()
   const toast = useToast()
   const current = profileOf(user)
@@ -104,7 +106,7 @@ export default function EditProfileModal({ onClose }) {
   const draft = {
     bio: bio.trim(),
     socials: { tiktok: socials.tiktok, instagram: socials.instagram, website: website.href },
-    display,
+    display: { ...display, hiddenBadges: [...display.hiddenBadges].sort() },
   }
   const profileChanged = JSON.stringify(draft) !== JSON.stringify(current)
 
@@ -134,6 +136,13 @@ export default function EditProfileModal({ onClose }) {
   const setSocial = (key, transform = (v) => v) => (e) =>
     setSocials((s) => ({ ...s, [key]: transform(e.target.value) }))
   const setShow = (key) => (on) => setDisplay((d) => ({ ...d, [key]: on }))
+
+  const earned = stats ? getEarnedBadges(stats) : null
+  const toggleBadge = (id) => (on) =>
+    setDisplay((d) => ({
+      ...d,
+      hiddenBadges: on ? d.hiddenBadges.filter((b) => b !== id) : [...d.hiddenBadges, id],
+    }))
 
   const save = async () => {
     setSaving(true)
@@ -342,12 +351,39 @@ export default function EditProfileModal({ onClose }) {
             checked={display.extraStats}
             onChange={setShow('extraStats')}
           />
-          <ToggleRow
-            title="Lencana"
-            description="Dihitung otomatis dari logbook-mu"
-            checked={display.badges}
-            onChange={setShow('badges')}
-          />
+
+          <div className="border-t border-line pt-3">
+            <p className="text-[12.5px] font-semibold">Lencana</p>
+            <p className="mb-2.5 mt-px text-[11px] text-mute">
+              Dihitung otomatis dari pendakian terverifikasi. Pilih yang ingin ditampilkan.
+            </p>
+
+            {earned === null && <p className="text-[11px] text-mute">Memuat lencana...</p>}
+            {earned?.length === 0 && (
+              <p className="text-[11px] leading-normal text-mute">
+                Belum ada lencana. Selesaikan pendakian terverifikasi untuk mendapatkannya.
+              </p>
+            )}
+            {earned?.map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0 first:pt-0"
+              >
+                <BadgeMedal icon={b.icon} tier={b.tier} image={b.image} size={40} showLabel={false} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-semibold">{b.name}</p>
+                  <p className="mt-px text-[11px] text-mute">
+                    {b.tierName ? `Tingkat ${b.tierName}` : 'Satu tingkat'}
+                  </p>
+                </div>
+                <Toggle
+                  checked={!display.hiddenBadges.includes(b.id)}
+                  onChange={toggleBadge(b.id)}
+                  label={`Tampilkan lencana ${b.name}`}
+                />
+              </div>
+            ))}
+          </div>
 
           {submitError && <p className="mt-3 text-xs font-semibold text-warn">{submitError}</p>}
         </form>
