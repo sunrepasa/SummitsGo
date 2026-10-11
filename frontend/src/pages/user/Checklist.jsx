@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Backpack, Plus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import TopBar from '../../components/layout/TopBar'
 import ChecklistCard, { ChecklistCardSkeleton } from '../../components/checklist/ChecklistCard'
+import CreateChecklistModal from '../../components/checklist/CreateChecklistModal'
 import { useAuth } from '../../context/AuthContext'
 import { getMyChecklists } from '../../api/checklist'
 import { useAsync } from '../../hooks/useAsync'
@@ -72,9 +74,15 @@ function ChecklistView({ onCreate, showCreate = false, children }) {
   )
 }
 
-// onCreate belum diisi untuk user login: form Buat Checklist Baru dibuat di langkah berikutnya
 function ChecklistLoggedIn() {
-  const { data, error, loading } = useAsync(getMyChecklists, [])
+  const { data, error, loading, reload } = useAsync(getMyChecklists, [])
+  const [creating, setCreating] = useState(false)
+  const openCreate = () => setCreating(true)
+
+  const saved = () => {
+    setCreating(false)
+    reload()
+  }
 
   let body
   if (error) {
@@ -92,7 +100,7 @@ function ChecklistLoggedIn() {
       </div>
     )
   } else if (data.length === 0) {
-    body = <EmptyState />
+    body = <EmptyState onCreate={openCreate} />
   } else {
     body = (
       <div className={grid}>
@@ -103,7 +111,14 @@ function ChecklistLoggedIn() {
     )
   }
 
-  return <ChecklistView showCreate={Boolean(data?.length)}>{body}</ChecklistView>
+  return (
+    <>
+      <ChecklistView onCreate={openCreate} showCreate={Boolean(data?.length)}>
+        {body}
+      </ChecklistView>
+      {creating && <CreateChecklistModal onClose={() => setCreating(false)} onSaved={saved} />}
+    </>
+  )
 }
 
 // guest tidak memanggil API sama sekali: endpoint checklist butuh token, dan datanya memang kosong

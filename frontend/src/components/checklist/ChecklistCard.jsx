@@ -34,7 +34,7 @@ export default function ChecklistCard({ checklist: c }) {
       <div className="mb-1.5 flex justify-between text-[11px] text-mute md:mb-2 md:mt-5 md:text-xs">
         <span>Progress barang</span>
         <b className="text-pine-deep">
-          {c.done}/{c.total} siap
+          {c.total ? `${c.done}/${c.total} siap` : 'Belum ada barang'}
         </b>
       </div>
       <ProgressBar value={percent} className="md:h-2" />
