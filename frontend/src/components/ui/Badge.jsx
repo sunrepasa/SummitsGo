@@ -4,6 +4,7 @@ const variants = {
   warn: 'bg-warnbg text-warn',
   muted: 'border border-line bg-stone text-mute',
   leaf: 'bg-leaf text-[#12210F]',
+  gold: 'bg-[#FBEFD9] text-[#8A6417]',
 }
 
 export default function Badge({ variant = 'default', className = '', children }) {

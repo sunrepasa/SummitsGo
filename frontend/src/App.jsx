@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext'
 import SearchPage from './pages/user/Search'
 import Profile from './pages/user/Profile'
 import Logbook from './pages/user/Logbook'
+import Checklist from './pages/user/Checklist'
 
 function Placeholder({ title, children }) {
   return (
@@ -52,7 +53,8 @@ export default function App() {
 
       <Route element={<UserLayout />}>
         <Route path="/" element={<Placeholder title="Beranda" />} />
-        <Route path="/checklist" element={<Placeholder title="Checklist Saya" />} />
+        <Route path="/checklist" element={<Checklist />} />
+<Route path="/checklist/:id" element={<Placeholder title="Detail Checklist" />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/logbook" element={<Logbook />} />
         <Route path="/logbook/:id" element={<Placeholder title="Detail Logbook" />} />
