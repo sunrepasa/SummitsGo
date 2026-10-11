@@ -26,7 +26,7 @@ export async function checkUsername(username) {
   return data.available
 }
 
-export async function updateProfile(current, { name, username }) {
+export async function updateProfile(current, { name, username, bio, socials, display }) {
   if (USE_MOCK) {
     await wait(null, 500)
     const changed = username !== current.username
@@ -37,11 +37,18 @@ export async function updateProfile(current, { name, username }) {
       if (takenUsernames.has(username)) throw codedError('Username sudah dipakai', 'USERNAME_TAKEN')
       takenUsernames.add(username)
     }
-    return { name, username, ...(changed && { usernameChangedAt: new Date().toISOString() }) }
+    return {
+      name,
+      username,
+      bio,
+      socials,
+      display,
+      ...(changed && { usernameChangedAt: new Date().toISOString() }),
+    }
   }
 
   try {
-    const { data } = await client.patch('/users/me', { name, username })
+    const { data } = await client.patch('/users/me', { name, username, bio, socials, display })
     return data
   } catch (err) {
     throw apiError(err)

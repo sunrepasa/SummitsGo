@@ -36,3 +36,13 @@ export function dateToIso(date) {
   const pad = (n) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
+
+const MONTHS_FULL = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+]
+
+export function formatMonthYear(iso) {
+  const { y, m } = parts(iso)
+  return `${MONTHS_FULL[m]} ${y}`
+}

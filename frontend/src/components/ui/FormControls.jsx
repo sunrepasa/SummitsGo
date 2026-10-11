@@ -21,6 +21,24 @@ export function Input({ className = '', ...props }) {
   return <input className={`${base} ${className}`} {...props} />
 }
 
+export function PrefixInput({ prefix, invalid = false, disabled = false, className = '', ...props }) {
+  return (
+    <div
+      className={`flex items-center rounded-[11px] border px-[13px] ${
+        disabled ? 'bg-stone' : 'bg-paper'
+      } ${invalid ? 'border-warn' : 'border-line focus-within:border-pine'} ${className}`}
+    >
+      <span className="select-none text-[12.5px] text-mute md:text-[13px]">{prefix}</span>
+      <input
+        disabled={disabled}
+        aria-invalid={invalid}
+        className="min-w-0 flex-1 bg-transparent py-[11px] pl-1 text-[12.5px] text-ink outline-none disabled:text-mute md:text-[13px]"
+        {...props}
+      />
+    </div>
+  )
+}
+
 export function Select({ className = '', children, ...props }) {
   return (
     <select className={`${base} ${className}`} {...props}>

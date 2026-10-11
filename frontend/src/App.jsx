@@ -28,7 +28,14 @@ function DevLogin() {
   const enter = () => {
     login({
       token: 'dev-token',
-      user: { name: 'Sayz', username: 'sayz', email: 'sayz@email.com', role: 'user', usernameChangedAt: null },
+      user: {
+        name: 'Sayz',
+        username: 'sayz',
+        email: 'sayz@email.com',
+        role: 'user',
+        usernameChangedAt: null,
+        joinedAt: '2025-01-15',
+      },
     })
     navigate(state?.from ?? '/')
   }

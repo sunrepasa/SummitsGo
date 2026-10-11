@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom'
-import { Link2 } from 'lucide-react'
+import { CalendarDays, Link2 } from 'lucide-react'
 import Avatar from '../ui/Avatar'
+import ProfileBadges from './ProfileBadges'
+import ProfileLinks from './ProfileLinks'
+import { formatMonthYear } from '../../utils/date'
+import { profileOf } from '../../utils/profile'
 
 function Stat({ value, label }) {
   return (
-    <div className="flex-1 rounded-xl bg-stone p-2.5 text-center md:rounded-[13px] md:px-1.5 md:py-3">
+    <div className="rounded-xl bg-stone p-2.5 text-center md:rounded-[13px] md:px-1.5 md:py-3">
       <b className="block font-heading text-base md:text-xl">{value}</b>
       <span className="text-[10px] text-mute md:text-[11px]">{label}</span>
     </div>
@@ -13,6 +17,10 @@ function Stat({ value, label }) {
 
 export default function ProfileCard({ user, stats, onEdit }) {
   const publicPath = `/u/${user.username}`
+  const profile = profileOf(user)
+  const { bio, display } = profile
+  const joined = display.joinedSince && user.joinedAt ? formatMonthYear(user.joinedAt) : ''
+  const value = (n) => (stats ? n : '–')
 
   return (
     <section className="rounded-[18px] border border-line bg-paper p-4 md:rounded-[20px] md:px-6 md:py-[26px] md:text-center">
@@ -48,13 +56,36 @@ export default function ProfileCard({ user, stats, onEdit }) {
         </button>
       </div>
 
-      <div className="mt-3.5 flex gap-2.5 md:mt-5 md:border-t md:border-line md:pt-5">
-        <Stat value={stats ? stats.climbed : '–'} label="Gunung Didaki" />
+      {bio && (
+        <p className="mt-3 line-clamp-3 whitespace-pre-line break-words text-[12.5px] leading-relaxed md:text-center md:text-[13px]">
+          {bio}
+        </p>
+      )}
+
+      <ProfileLinks profile={profile} />
+
+      {joined && (
+        <p className="mt-3 flex items-center gap-1 text-[11px] text-mute md:justify-center">
+          <CalendarDays size={12} />
+          Bergabung sejak {joined}
+        </p>
+      )}
+
+      <div className="mt-3.5 grid grid-cols-2 gap-2.5 md:mt-5 md:border-t md:border-line md:pt-5">
+        <Stat value={value(stats?.climbed)} label="Gunung Didaki" />
         <Stat
           value={stats ? `${stats.highest.toLocaleString('id-ID')} m` : '–'}
           label="Tertinggi Dicapai"
         />
+        {display.extraStats && (
+          <>
+            <Stat value={value(stats?.trips)} label="Total Pendakian" />
+            <Stat value={value(stats?.days)} label="Hari di Gunung" />
+          </>
+        )}
       </div>
+
+      <ProfileBadges stats={stats} show={display.badges} />
     </section>
   )
 }

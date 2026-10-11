@@ -3,12 +3,14 @@ import { Check, Lock, RefreshCw, X } from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import BottomSheet from '../ui/BottomSheet'
 import ConfirmDialog from '../ui/ConfirmDialog'
-import { Field, Input } from '../ui/FormControls'
+import { Field, Input, PrefixInput, Textarea } from '../ui/FormControls'
+import Toggle from '../ui/Toggle'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { updateProfile } from '../../api/user'
 import { useUsernameCheck } from '../../hooks/useUsernameCheck'
 import { dateToIso, formatDateRange } from '../../utils/date'
+import { BIO_MAX, SOCIAL_MAX, parseWebsite, profileOf, validateHandle } from '../../utils/profile'
 import { getUsernameUnlockDate, normalizeUsername, validateUsername } from '../../utils/username'
 
 const FORM_ID = 'edit-profile-form'
@@ -21,12 +23,59 @@ const feedbackTones = {
   mute: 'text-mute',
 }
 
+function SectionTitle({ children }) {
+  return <p className="mb-2.5 mt-5 border-t border-line pt-4 text-xs font-bold">{children}</p>
+}
+
+function LinkField({ id, label, show, onShow, canShow, error, hint, children }) {
+  return (
+    <div className="mb-3.5">
+      <div className="mb-1.5 flex items-center justify-between gap-3">
+        <label htmlFor={id} className="text-[11.5px] font-semibold md:text-xs">
+          {label}
+        </label>
+        <span className="flex items-center gap-2 text-[11px] text-mute">
+          Tampilkan
+          <Toggle
+            checked={show}
+            onChange={onShow}
+            disabled={!canShow}
+            label={`Tampilkan ${label} di profil`}
+          />
+        </span>
+      </div>
+      {children}
+      {error ? (
+        <p className="mt-1.5 text-[11px] font-semibold text-warn">{error}</p>
+      ) : (
+        hint && <p className="mt-1.5 text-[11px] text-mute">{hint}</p>
+      )}
+    </div>
+  )
+}
+
+function ToggleRow({ title, description, checked, onChange }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-t border-line py-3 first:border-t-0 first:pt-0">
+      <div className="min-w-0">
+        <p className="text-[12.5px] font-semibold">{title}</p>
+        <p className="mt-px text-[11px] text-mute">{description}</p>
+      </div>
+      <Toggle checked={checked} onChange={onChange} label={title} />
+    </div>
+  )
+}
+
 export default function EditProfileModal({ onClose }) {
   const { user, updateUser } = useAuth()
   const toast = useToast()
+  const current = profileOf(user)
 
   const [name, setName] = useState(user.name)
   const [username, setUsername] = useState(user.username)
+  const [bio, setBio] = useState(current.bio)
+  const [socials, setSocials] = useState(current.socials)
+  const [display, setDisplay] = useState(current.display)
   const [rejected, setRejected] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -47,6 +96,18 @@ export default function EditProfileModal({ onClose }) {
       ? `Maksimal ${NAME_MAX} karakter`
       : ''
 
+  const bioError = bio.length > BIO_MAX ? `Maksimal ${BIO_MAX} karakter` : ''
+  const tiktokError = validateHandle(socials.tiktok, SOCIAL_MAX.tiktok)
+  const instagramError = validateHandle(socials.instagram, SOCIAL_MAX.instagram)
+  const website = parseWebsite(socials.website)
+
+  const draft = {
+    bio: bio.trim(),
+    socials: { tiktok: socials.tiktok, instagram: socials.instagram, website: website.href },
+    display,
+  }
+  const profileChanged = JSON.stringify(draft) !== JSON.stringify(current)
+
   let feedback = null
   if (locked) {
     feedback = { tone: 'mute', icon: 'lock', text: `Username bisa diganti lagi pada ${formatDateRange(dateToIso(unlockDate))}` }
@@ -66,14 +127,19 @@ export default function EditProfileModal({ onClose }) {
 
   const FeedbackIcon = feedback ? feedbackIcons[feedback.icon] : null
   const usernameOk = unchanged || (!locked && !formatError && status === 'available')
-  const dirty = trimmedName !== user.name || !unchanged
-  const canSave = dirty && !nameError && usernameOk && !saving
+  const fieldsOk = !nameError && !bioError && !tiktokError && !instagramError && !website.error
+  const dirty = trimmedName !== user.name || !unchanged || profileChanged
+  const canSave = dirty && fieldsOk && usernameOk && !saving
+
+  const setSocial = (key, transform = (v) => v) => (e) =>
+    setSocials((s) => ({ ...s, [key]: transform(e.target.value) }))
+  const setShow = (key) => (on) => setDisplay((d) => ({ ...d, [key]: on }))
 
   const save = async () => {
     setSaving(true)
     setSubmitError('')
     try {
-      const updated = await updateProfile(user, { name: trimmedName, username })
+      const updated = await updateProfile(user, { name: trimmedName, username, ...draft })
       updateUser(updated)
       toast.success('Profil berhasil diperbarui')
       onClose()
@@ -139,28 +205,21 @@ export default function EditProfileModal({ onClose }) {
           </Field>
 
           <Field label="Username" htmlFor="ep-username">
-            <div
-              className={`flex items-center rounded-[11px] border px-[13px] ${
-                locked ? 'bg-stone' : 'bg-paper'
-              } ${feedback?.tone === 'bad' ? 'border-warn' : 'border-line focus-within:border-pine'}`}
-            >
-              <span className="select-none text-[12.5px] text-mute md:text-[13px]">@</span>
-              <input
-                id="ep-username"
-                value={username}
-                onChange={(e) => {
-                  setUsername(normalizeUsername(e.target.value))
-                  setRejected('')
-                }}
-                disabled={locked}
-                autoComplete="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                aria-invalid={feedback?.tone === 'bad'}
-                aria-describedby="ep-username-status"
-                className="min-w-0 flex-1 bg-transparent py-[11px] pl-1 text-[12.5px] text-ink outline-none disabled:text-mute md:text-[13px]"
-              />
-            </div>
+            <PrefixInput
+              prefix="@"
+              id="ep-username"
+              value={username}
+              onChange={(e) => {
+                setUsername(normalizeUsername(e.target.value))
+                setRejected('')
+              }}
+              disabled={locked}
+              invalid={feedback?.tone === 'bad'}
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              aria-describedby="ep-username-status"
+            />
 
             {feedback && (
               <p
@@ -187,7 +246,110 @@ export default function EditProfileModal({ onClose }) {
             <Input id="ep-email" value={user.email ?? '–'} disabled />
           </Field>
 
-          {submitError && <p className="mb-2 text-xs font-semibold text-warn">{submitError}</p>}
+          <SectionTitle>Tentang</SectionTitle>
+          <Field label="Bio (opsional)" htmlFor="ep-bio" error={bioError}>
+            <Textarea
+              id="ep-bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Ceritakan sedikit tentang dirimu..."
+              aria-invalid={Boolean(bioError)}
+            />
+            <p
+              className={`mt-1 text-right text-[10.5px] ${
+                bioError ? 'font-semibold text-warn' : 'text-mute'
+              }`}
+            >
+              {bio.length}/{BIO_MAX}
+            </p>
+          </Field>
+
+          <SectionTitle>Tautan</SectionTitle>
+          <LinkField
+            id="ep-tiktok"
+            label="TikTok"
+            show={display.tiktok}
+            onShow={setShow('tiktok')}
+            canShow={socials.tiktok !== ''}
+            error={tiktokError}
+          >
+            <PrefixInput
+              prefix="@"
+              id="ep-tiktok"
+              value={socials.tiktok}
+              onChange={setSocial('tiktok', normalizeUsername)}
+              placeholder="username"
+              invalid={Boolean(tiktokError)}
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+          </LinkField>
+
+          <LinkField
+            id="ep-instagram"
+            label="Instagram"
+            show={display.instagram}
+            onShow={setShow('instagram')}
+            canShow={socials.instagram !== ''}
+            error={instagramError}
+          >
+            <PrefixInput
+              prefix="@"
+              id="ep-instagram"
+              value={socials.instagram}
+              onChange={setSocial('instagram', normalizeUsername)}
+              placeholder="username"
+              invalid={Boolean(instagramError)}
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+          </LinkField>
+
+          <LinkField
+            id="ep-website"
+            label="Link Bebas"
+            show={display.website}
+            onShow={setShow('website')}
+            canShow={socials.website.trim() !== ''}
+            error={website.error}
+            hint="Boleh tanpa https://, akan ditambahkan otomatis saat disimpan"
+          >
+            <Input
+              id="ep-website"
+              inputMode="url"
+              value={socials.website}
+              onChange={setSocial('website')}
+              placeholder="contoh.com"
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              aria-invalid={Boolean(website.error)}
+            />
+          </LinkField>
+
+          <SectionTitle>Tampilan Profil</SectionTitle>
+          <ToggleRow
+            title="Bergabung sejak"
+            description="Bulan dan tahun kamu mendaftar"
+            checked={display.joinedSince}
+            onChange={setShow('joinedSince')}
+          />
+          <ToggleRow
+            title="Statistik tambahan"
+            description="Total pendakian dan hari di gunung"
+            checked={display.extraStats}
+            onChange={setShow('extraStats')}
+          />
+          <ToggleRow
+            title="Lencana"
+            description="Dihitung otomatis dari logbook-mu"
+            checked={display.badges}
+            onChange={setShow('badges')}
+          />
+
+          {submitError && <p className="mt-3 text-xs font-semibold text-warn">{submitError}</p>}
         </form>
       </BottomSheet>
 
