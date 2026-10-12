@@ -16,7 +16,7 @@ export default function Logo({ size = 32, tone = 'pine', className = '' }) {
         <Mountain size={Math.round(size * 0.55)} />
       ) : (
         <img
-          src="/brand/Logo.png"
+          src="/brand/Logo.svg"
           alt=""
           width={Math.round(size * 0.72)}
           height={Math.round(size * 0.72)}
