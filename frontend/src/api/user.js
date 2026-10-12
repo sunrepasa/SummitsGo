@@ -1,9 +1,10 @@
 import client from './client'
 import { USE_MOCK } from '../config'
+import { accounts } from '../data/accounts'
 import { wait } from './mockDelay'
 import { getUsernameUnlockDate } from '../utils/username'
 
-// username yang dianggap sudah dipakai di mode mock
+// username yang dianggap sudah dipakai di mode mock, selain akun di data/accounts.js
 const takenUsernames = new Set([
   'admin',
   'summitsgo',
@@ -14,6 +15,10 @@ const takenUsernames = new Set([
   'dimas.m',
 ])
 
+export function isUsernameTaken(username) {
+  return takenUsernames.has(username) || accounts.some((a) => a.username === username)
+}
+
 const codedError = (message, code) => Object.assign(new Error(message), { code })
 
 function apiError(err) {
@@ -21,7 +26,7 @@ function apiError(err) {
 }
 
 export async function checkUsername(username) {
-  if (USE_MOCK) return wait(!takenUsernames.has(username), 350)
+  if (USE_MOCK) return wait(!isUsernameTaken(username), 350)
   const { data } = await client.get('/users/username-available', { params: { username } })
   return data.available
 }
@@ -34,7 +39,7 @@ export async function updateProfile(current, { name, username, bio, socials, dis
       if (getUsernameUnlockDate(current.usernameChangedAt)) {
         throw codedError('Jeda ganti username belum selesai', 'USERNAME_COOLDOWN')
       }
-      if (takenUsernames.has(username)) throw codedError('Username sudah dipakai', 'USERNAME_TAKEN')
+      if (isUsernameTaken(username)) throw codedError('Username sudah dipakai', 'USERNAME_TAKEN')
       takenUsernames.add(username)
     }
     return {

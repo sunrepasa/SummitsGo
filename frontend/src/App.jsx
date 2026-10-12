@@ -1,71 +1,36 @@
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import UserLayout from './components/layout/UserLayout'
 import TopBar from './components/layout/TopBar'
-import { useAuth } from './context/AuthContext'
+import AuthPage from './pages/auth/AuthPage'
+import Home from './pages/user/Home'
 import SearchPage from './pages/user/Search'
 import Profile from './pages/user/Profile'
 import Logbook from './pages/user/Logbook'
 import Checklist from './pages/user/Checklist'
 
-function Placeholder({ title, children }) {
+function Placeholder({ title }) {
   return (
     <>
       <TopBar title={title} />
       <div className="px-5 md:px-0">
         <h1 className="hidden pt-8 font-heading text-2xl font-bold md:block">{title}</h1>
-        {children}
       </div>
     </>
-  )
-}
-
-// sementara — diganti halaman Login asli saat mockup Login/Register masuk
-function DevLogin() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const { state } = useLocation()
-
-  const enter = () => {
-    login({
-      token: 'dev-token',
-      user: {
-        name: 'Sayz',
-        username: 'sayz',
-        email: 'sayz@email.com',
-        role: 'user',
-        usernameChangedAt: null,
-        joinedAt: '2025-01-15',
-      },
-    })
-    navigate(state?.from ?? '/')
-  }
-
-  return (
-    <div className="mx-auto max-w-[390px] p-6">
-      <h1 className="font-heading text-2xl font-bold">Masuk</h1>
-      <p className="mt-2 text-[13px] text-mute">Halaman sementara untuk uji navigasi.</p>
-      <button
-        type="button"
-        onClick={enter}
-        className="mt-6 w-full rounded-xl bg-pine py-3 text-[13.5px] font-semibold text-white"
-      >
-        Masuk sebagai Sayz (tiruan)
-      </button>
-    </div>
   )
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<DevLogin />} />
-      <Route path="/register" element={<Placeholder title="Daftar" />} />
+      <Route path="/login" element={<AuthPage mode="login" />} />
+      <Route path="/register" element={<AuthPage mode="register" />} />
 
       <Route element={<UserLayout />}>
-        <Route path="/" element={<Placeholder title="Beranda" />} />
+        <Route path="/" element={<Home />} />
         <Route path="/checklist" element={<Checklist />} />
-<Route path="/checklist/:id" element={<Placeholder title="Detail Checklist" />} />
+        <Route path="/checklist/:id" element={<Placeholder title="Detail Checklist" />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/mountain/:id" element={<Placeholder title="Detail Gunung" />} />
         <Route path="/logbook" element={<Logbook />} />
         <Route path="/logbook/:id" element={<Placeholder title="Detail Logbook" />} />
         <Route path="/u/:username" element={<Placeholder title="Profil Publik" />} />

@@ -5,7 +5,6 @@ import {
   ChevronDown,
   LayoutDashboard,
   Map as MapIcon,
-  Mountain,
   Search,
   Settings,
   User,
@@ -13,6 +12,7 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useDismiss } from '../../hooks/useDismiss'
 import Avatar from '../ui/Avatar'
+import Logo from '../ui/Logo'
 
 const menu = [
   { to: '/', label: 'Beranda', end: true },
@@ -56,16 +56,21 @@ function SearchBox() {
 }
 
 function GuestActions() {
+  const { pathname, search } = useLocation()
+  const state = { from: pathname + search }
+
   return (
     <>
       <Link
         to="/login"
+        state={state}
         className="rounded-full border border-line bg-paper px-[18px] py-[9px] text-[13px] font-semibold"
       >
         Masuk
       </Link>
       <Link
         to="/register"
+        state={state}
         className="rounded-full bg-pine px-[18px] py-[9px] text-[13px] font-semibold text-white"
       >
         Daftar
@@ -130,9 +135,7 @@ export default function DesktopNav() {
       {/* 2xl: tiga kolom supaya menu tepat di tengah; di bawahnya menu menempel ke logo karena ruang kanan tidak cukup */}
       <div className="page-container flex items-center gap-4 py-3.5 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Link to="/" className="flex w-fit items-center gap-[9px]">
-          <span className="flex size-8 items-center justify-center rounded-[9px] bg-pine text-white">
-            <Mountain size={18} />
-          </span>
+          <Logo size={32} />
           <span className="hidden font-heading text-lg font-bold lg:inline">SummitsGo</span>
         </Link>
 
