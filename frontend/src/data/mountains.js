@@ -8,7 +8,7 @@ const covers = {
 }
 
 const rawMountains = [
-  { id: 'rinjani', name: 'Gunung Rinjani', location: 'Lombok', elevation: 3726, difficulty: 'medium', status: 'quota_full', rating: 4.8, reviewCount: 340, popularity: 1200, addedAt: '2026-06-10', cover: covers.sky },
+  { id: 'rinjani', name: 'Gunung Rinjani', location: 'Lombok', elevation: 3726, difficulty: 'hard', status: 'quota_full', rating: 4.8, reviewCount: 340, popularity: 1200, addedAt: '2026-06-10', cover: covers.sky },
   { id: 'semeru', name: 'Gunung Semeru', location: 'Jawa Timur', elevation: 3676, difficulty: 'hard', status: 'open', rating: 4.7, reviewCount: 210, popularity: 980, addedAt: '2026-06-12', cover: covers.forest },
   { id: 'prau', name: 'Gunung Prau', location: 'Wonosobo', elevation: 2565, difficulty: 'beginner', status: 'open', rating: 4.7, reviewCount: 312, popularity: 730, addedAt: '2026-06-20', cover: covers.earth },
   { id: 'merbabu', name: 'Gunung Merbabu', location: 'Jawa Tengah', elevation: 3145, difficulty: 'medium', status: 'open', rating: 4.6, reviewCount: 128, popularity: 575, addedAt: '2026-07-01', cover: covers.forest },

@@ -1,6 +1,7 @@
 import client from './client'
 import { USE_MOCK } from '../config'
 import { heroSlides, mountains } from '../data/mountains'
+import { mountainDetails } from '../data/mountainDetails'
 import { routesByMountain } from '../data/routes'
 import { wait } from './mockDelay'
 
@@ -67,7 +68,24 @@ export async function getHeroSlides() {
 }
 
 export async function getMountainRoutes(mountainId) {
-  if (USE_MOCK) return wait(routesByMountain[mountainId] ?? [], 200)
+  if (USE_MOCK) {
+    const detailed = mountainDetails[mountainId]?.routes.map((r) => r.name)
+    return wait(detailed ?? routesByMountain[mountainId] ?? [], 200)
+  }
   const { data } = await client.get(`/mountains/${mountainId}/routes`)
+  return data
+}
+
+// gunung tanpa entri di mountainDetails tetap valid: bagian detailnya kosong dan disembunyikan halaman
+export async function getMountainById(id) {
+  if (USE_MOCK) {
+    const base = mountains.find((m) => m.id === id)
+    if (!base) {
+      await wait(null, 300)
+      throw Object.assign(new Error('Gunung tidak ditemukan'), { status: 404 })
+    }
+    return wait({ routes: [], emergency: [], ...base, ...mountainDetails[id] }, 400)
+  }
+  const { data } = await client.get(`/mountains/${id}`)
   return data
 }

@@ -1,5 +1,5 @@
 export const routesByMountain = {
-  rinjani: ['Sembalun', 'Senaru', 'Torean'],
+  rinjani: ['Sembalun', 'Torean'],
   semeru: ['Ranu Pani'],
   prau: ['Patak Banteng', 'Dieng', 'Wates'],
   merbabu: ['Selo', 'Wekas', 'Suwanting', 'Thekelan'],

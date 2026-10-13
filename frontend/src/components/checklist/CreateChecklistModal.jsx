@@ -93,9 +93,9 @@ function TemplateChips({ loading, failed, items, selectedId, onSelect, emptyText
   )
 }
 
-export default function CreateChecklistModal({ onClose, onSaved }) {
+export default function CreateChecklistModal({ onClose, onSaved, initialMountainId = '' }) {
   const { user } = useAuth()
-  const [form, setForm] = useState(EMPTY)
+  const [form, setForm] = useState(() => ({ ...EMPTY, mountainId: initialMountainId }))
   const [showErrors, setShowErrors] = useState(false)
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState('')
