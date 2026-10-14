@@ -4,9 +4,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import TopBar from '../../components/layout/TopBar'
 import ChecklistCard, { ChecklistCardSkeleton } from '../../components/checklist/ChecklistCard'
 import CreateChecklistModal from '../../components/checklist/CreateChecklistModal'
+import InvitationCard from '../../components/checklist/InvitationCard'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
-import { getMyChecklists } from '../../api/checklist'
+import { acceptInvitation, declineInvitation, getMyChecklists, getMyInvitations } from '../../api/checklist'
 import { useAsync } from '../../hooks/useAsync'
 
 const grid = 'grid gap-3 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] md:gap-[18px]'
@@ -77,14 +78,27 @@ function ChecklistView({ onCreate, showCreate = false, children }) {
 
 function ChecklistLoggedIn() {
   const { data, error, loading, reload } = useAsync(getMyChecklists, [])
+  const invitations = useAsync(getMyInvitations, [])
   const [creating, setCreating] = useState(false)
   const toast = useToast()
+  const navigate = useNavigate()
   const openCreate = () => setCreating(true)
 
   const saved = () => {
     setCreating(false)
     reload()
     toast.success('Checklist berhasil dibuat')
+  }
+
+  const accept = async (invitationId) => {
+    const checklistId = await acceptInvitation(invitationId)
+    toast.success('Kamu bergabung ke checklist')
+    navigate(`/checklist/${checklistId}`)
+  }
+
+  const decline = async (invitationId) => {
+    await declineInvitation(invitationId)
+    invitations.reload()
   }
 
   let body
@@ -117,6 +131,9 @@ function ChecklistLoggedIn() {
   return (
     <>
       <ChecklistView onCreate={openCreate} showCreate={Boolean(data?.length)}>
+        {invitations.data?.map((inv) => (
+          <InvitationCard key={inv.id} invitation={inv} onAccept={accept} onDecline={decline} />
+        ))}
         {body}
       </ChecklistView>
       {creating && <CreateChecklistModal onClose={() => setCreating(false)} onSaved={saved} />}

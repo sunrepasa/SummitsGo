@@ -9,6 +9,7 @@ export default function ConfirmDialog({
   cancelLabel = 'Batal',
   busyLabel = 'Memproses...',
   busy = false,
+  danger = false,
   onConfirm,
   onCancel,
 }) {
@@ -38,7 +39,7 @@ export default function ConfirmDialog({
         aria-label={title}
         className="relative w-full max-w-[360px] animate-[modal-in_.2s_ease-out] rounded-[18px] bg-paper px-5 py-[22px] text-center outline-none md:rounded-[20px] md:p-6"
       >
-        {Icon && <Icon size={28} className="mx-auto mb-2.5 text-leaf-deep" />}
+        {Icon && <Icon size={28} className={`mx-auto mb-2.5 ${danger ? 'text-warn' : 'text-leaf-deep'}`} />}
         <h3 className="mb-2 font-heading text-[15px] font-bold md:text-[17px]">{title}</h3>
         <div className="mb-[18px] text-[11.5px] leading-[1.6] text-mute md:text-[12.5px]">{children}</div>
 
@@ -55,7 +56,9 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy}
-            className="flex-1 rounded-[11px] bg-pine py-[11px] text-[12.5px] font-semibold text-white disabled:opacity-60"
+            className={`flex-1 rounded-[11px] py-[11px] text-[12.5px] font-semibold text-white disabled:opacity-60 ${
+              danger ? 'bg-warn' : 'bg-pine'
+            }`}
           >
             {busy ? busyLabel : confirmLabel}
           </button>
