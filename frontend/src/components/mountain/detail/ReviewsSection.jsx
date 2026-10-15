@@ -2,6 +2,7 @@ import { BadgeCheck, PenLine } from 'lucide-react'
 import Section from './Section'
 import Stars from '../../ui/Stars'
 import { formatDateRange } from '../../../utils/date'
+import { reviewTagLabel } from '../../../utils/reviewTags'
 
 function ReviewItem({ review: r }) {
   return (
@@ -19,6 +20,15 @@ function ReviewItem({ review: r }) {
         </span>
       </div>
       <p className="mt-1 leading-normal text-[#3A4640] md:leading-relaxed">{r.text}</p>
+      {r.tags?.length > 0 && (
+        <ul className="mt-1.5 flex flex-wrap gap-1.5">
+          {r.tags.map((id) => (
+            <li key={id} className="rounded-full border border-line px-2 py-0.5 text-[10.5px] text-mute">
+              {reviewTagLabel(id) ?? id}
+            </li>
+          ))}
+        </ul>
+      )}
       <p className="mt-1 text-[10.5px] text-mute">{formatDateRange(r.createdAt)}</p>
     </div>
   )

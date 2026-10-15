@@ -178,6 +178,7 @@ export default function AddLogbookModal({ onClose, onSaved }) {
           <Textarea
             id="lb-note"
             placeholder="Ceritakan pendakianmu..."
+            maxLength={1000}
             value={form.note}
             onChange={set('note')}
           />

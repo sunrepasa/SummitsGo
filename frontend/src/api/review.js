@@ -10,18 +10,25 @@ export async function getMountainReviews(mountainId) {
   return data
 }
 
-export async function createReview(mountainId, { rating, text, author }) {
+// logbookId opsional: ulasan yang ditulis dari entri logbook terverifikasi mendapat badge Terverifikasi.
+// Mode mock memercayai `verified` dari pemanggil; backend sungguhan menghitungnya sendiri dari logbookId.
+export async function createReview(
+  mountainId,
+  { rating, text, tags = [], route = null, author, logbookId = null, verified = false },
+) {
   if (USE_MOCK) {
     reviews.unshift({
       id: `rv-${Date.now()}`,
       mountainId,
       author,
-      verified: false,
+      verified,
       rating,
       text,
+      tags,
+      route,
       createdAt: todayIso(),
     })
     return wait(null, 500)
   }
-  await client.post(`/mountains/${mountainId}/reviews`, { rating, text })
+  await client.post(`/mountains/${mountainId}/reviews`, { rating, text, tags, route, logbookId })
 }

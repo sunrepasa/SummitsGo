@@ -5,10 +5,19 @@ import { mountains } from '../data/mountains'
 import { wait } from './mockDelay'
 import { addDays } from '../utils/date'
 
+const codedError = (message, code, status) => Object.assign(new Error(message), { code, status })
+const MAX_PHOTOS = 10
+
 const withMountain = ({ mountainId, ...entry }) => ({
   ...entry,
   mountain: mountains.find((m) => m.id === mountainId),
 })
+
+function findEntry(id) {
+  const entry = logbooks.find((e) => e.id === id)
+  if (!entry) throw codedError('Entri logbook tidak ditemukan', 'NOT_FOUND', 404)
+  return entry
+}
 
 export async function getMyLogbooks() {
   if (USE_MOCK) {
@@ -30,7 +39,18 @@ export async function confirmLogbookDraft(id) {
     const index = drafts.findIndex((d) => d.id === id)
     if (index !== -1) {
       const [draft] = drafts.splice(index, 1)
-      logbooks.push({ ...draft, id: `lb-${Date.now()}`, verified: true, likes: 0 })
+      logbooks.push({
+        ...draft,
+        id: `lb-${Date.now()}`,
+        verified: true,
+        likes: 0,
+        likedByMe: false,
+        isPublic: false,
+        note: '',
+        photos: [],
+        crew: [],
+        checklistName: null,
+      })
     }
     return wait(null)
   }
@@ -48,7 +68,7 @@ export async function dismissLogbookDraft(id) {
 
 export async function createLogbook({ mountainId, route, startDate, days, note, photo }) {
   if (USE_MOCK) {
-    // foto tidak disimpan di mode mock; backend nanti menerimanya lewat multipart
+    // foto mock disimpan sebagai object URL selama sesi; backend menerimanya lewat multipart
     logbooks.push({
       id: `lb-${Date.now()}`,
       mountainId,
@@ -58,7 +78,12 @@ export async function createLogbook({ mountainId, route, startDate, days, note, 
       nights: days ? days - 1 : null,
       verified: false,
       likes: 0,
+      likedByMe: false,
+      isPublic: false,
       note,
+      photos: photo ? [{ id: `ph-${Date.now()}`, url: URL.createObjectURL(photo) }] : [],
+      crew: [],
+      checklistName: null,
     })
     return wait(null, 500)
   }
@@ -72,3 +97,59 @@ export async function createLogbook({ mountainId, route, startDate, days, note, 
   if (photo) body.append('photo', photo)
   await client.post('/logbooks', body)
 }
+
+export async function getLogbookById(id) {
+  if (USE_MOCK) {
+    const entry = withMountain(findEntry(id))
+    return wait({ ...entry, photos: [...entry.photos], crew: [...entry.crew] }, 300)
+  }
+  const { data } = await client.get(`/logbooks/${id}`)
+  return data
+}
+
+export async function updateLogbookNote(id, note) {
+  if (USE_MOCK) {
+    findEntry(id).note = note
+    return wait(null, 250)
+  }
+  await client.put(`/logbooks/${id}`, { note })
+}
+
+export async function deleteLogbook(id) {
+  if (USE_MOCK) {
+    const index = logbooks.findIndex((e) => e.id === id)
+    if (index === -1) throw codedError('Entri logbook tidak ditemukan', 'NOT_FOUND', 404)
+    logbooks.splice(index, 1)
+    return wait(null, 400)
+  }
+  await client.delete(`/logbooks/${id}`)
+}
+
+export async function addLogbookPhoto(id, file) {
+  if (USE_MOCK) {
+    const entry = findEntry(id)
+    if (entry.photos.length >= MAX_PHOTOS) {
+      throw codedError(`Maksimal ${MAX_PHOTOS} foto per entri`, 'PHOTO_LIMIT', 409)
+    }
+    entry.photos.push({ id: `ph-${Date.now()}`, url: URL.createObjectURL(file) })
+    return wait(null, 500)
+  }
+  const body = new FormData()
+  body.append('photo', file)
+  await client.post(`/logbooks/${id}/photos`, body)
+}
+
+export async function setLogbookLike(id, liked) {
+  if (USE_MOCK) {
+    const entry = findEntry(id)
+    if (entry.likedByMe !== liked) {
+      entry.likedByMe = liked
+      entry.likes += liked ? 1 : -1
+    }
+    return wait(null, 200)
+  }
+  if (liked) await client.post(`/logbooks/${id}/like`)
+  else await client.delete(`/logbooks/${id}/like`)
+}
+
+export { MAX_PHOTOS }

@@ -9,6 +9,7 @@ import Logbook from './pages/user/Logbook'
 import Checklist from './pages/user/Checklist'
 import MountainDetail from './pages/user/MountainDetail'
 import ChecklistDetail from './pages/user/ChecklistDetail'
+import LogbookDetail from './pages/user/LogbookDetail'
 
 function Placeholder({ title }) {
   return (
@@ -34,7 +35,7 @@ export default function App() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/mountain/:id" element={<MountainDetail />} />
         <Route path="/logbook" element={<Logbook />} />
-        <Route path="/logbook/:id" element={<Placeholder title="Detail Logbook" />} />
+        <Route path="/logbook/:id" element={<LogbookDetail />} />
         <Route path="/u/:username" element={<Placeholder title="Profil Publik" />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />

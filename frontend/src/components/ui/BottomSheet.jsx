@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
-export default function BottomSheet({ open, onClose, title, children, footer, modal = false }) {
+export default function BottomSheet({ open, onClose, title, titleAddon, children, footer, modal = false }) {
   const panelRef = useRef(null)
 
   useEffect(() => {
@@ -52,7 +52,10 @@ export default function BottomSheet({ open, onClose, title, children, footer, mo
         <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-line md:hidden" />
 
         <header className="flex items-center justify-between px-5 pb-2 pt-3 md:px-6 md:pb-3 md:pt-6">
-          <h2 className="font-heading text-[17px] font-bold">{title}</h2>
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="font-heading text-[17px] font-bold">{title}</h2>
+            {titleAddon}
+          </div>
           <button
             type="button"
             onClick={onClose}
