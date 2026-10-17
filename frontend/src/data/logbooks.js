@@ -53,6 +53,38 @@ export const logbooks = [
   },
 ]
 
+// Mode mock hanya menyimpan data di memori, sehingga hilang saat halaman dimuat ulang. Status publik
+// (isPublic + slug) disimpan di localStorage karena tautan publik biasanya dibuka di tab atau sesi lain.
+// Backend sungguhan menyimpannya di database, jadi bagian ini tidak dipakai di luar mode mock.
+const VISIBILITY_KEY = 'summitsgo_mock_logbook_visibility'
+
+export function persistLogbookVisibility() {
+  try {
+    const state = Object.fromEntries(logbooks.map((e) => [e.id, { isPublic: e.isPublic, slug: e.slug }]))
+    localStorage.setItem(VISIBILITY_KEY, JSON.stringify(state))
+  } catch {
+    // localStorage tidak tersedia: status publik hanya bertahan selama halaman tidak dimuat ulang
+  }
+}
+
+function restoreLogbookVisibility() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VISIBILITY_KEY))
+    if (!saved) return
+    for (const entry of logbooks) {
+      const state = saved[entry.id]
+      if (state && typeof state.isPublic === 'boolean') {
+        entry.isPublic = state.isPublic
+        entry.slug = state.slug ?? entry.slug
+      }
+    }
+  } catch {
+    // data tersimpan rusak: pakai nilai awal
+  }
+}
+
+restoreLogbookVisibility()
+
 export const drafts = [
   { id: 'dr-1', mountainId: 'sindoro', route: 'Kledung', startDate: '2026-09-24', endDate: '2026-09-25', nights: 1 },
 ]

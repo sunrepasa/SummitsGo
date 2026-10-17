@@ -1,6 +1,6 @@
 import client from './client'
 import { USE_MOCK } from '../config'
-import { drafts, logbooks } from '../data/logbooks'
+import { drafts, logbooks, persistLogbookVisibility } from '../data/logbooks'
 import { mountains } from '../data/mountains'
 import { wait } from './mockDelay'
 import { addDays } from '../utils/date'
@@ -164,6 +164,7 @@ export async function setLogbookPublic(id, isPublic) {
     const entry = findEntry(id)
     entry.isPublic = isPublic
     if (isPublic && !entry.slug) entry.slug = makeSlug(entry)
+    persistLogbookVisibility()
     return wait({ isPublic: entry.isPublic, slug: entry.slug }, 300)
   }
   const { data } = await client.patch(`/logbooks/${id}/visibility`, { isPublic })
