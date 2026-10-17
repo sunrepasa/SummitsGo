@@ -7,10 +7,10 @@ import { useToast } from '../../context/ToastContext'
 import { registerRequest } from '../../api/auth'
 import { useUsernameCheck } from '../../hooks/useUsernameCheck'
 import { normalizeUsername, validateUsername } from '../../utils/username'
+import { PASSWORD_MIN } from '../../utils/auth'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const NAME_MAX = 50
-const PASSWORD_MIN = 8
 const DEFAULT_HINT = 'Huruf kecil, angka, titik, garis bawah, dan strip. Tanpa spasi.'
 
 const tones = {

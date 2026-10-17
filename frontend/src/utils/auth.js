@@ -1,3 +1,5 @@
+export const PASSWORD_MIN = 8
+
 const AUTH_PATH = /^\/(login|register)(\/|\?|$)/
 
 const isInternalPath = (path) =>

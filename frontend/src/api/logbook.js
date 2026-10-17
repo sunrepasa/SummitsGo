@@ -46,6 +46,7 @@ export async function confirmLogbookDraft(id) {
         likes: 0,
         likedByMe: false,
         isPublic: false,
+        slug: null,
         note: '',
         photos: [],
         crew: [],
@@ -80,6 +81,7 @@ export async function createLogbook({ mountainId, route, startDate, days, note, 
       likes: 0,
       likedByMe: false,
       isPublic: false,
+      slug: null,
       note,
       photos: photo ? [{ id: `ph-${Date.now()}`, url: URL.createObjectURL(photo) }] : [],
       crew: [],
@@ -150,6 +152,22 @@ export async function setLogbookLike(id, liked) {
   }
   if (liked) await client.post(`/logbooks/${id}/like`)
   else await client.delete(`/logbooks/${id}/like`)
+}
+
+// slug dibuat sekali dan dipertahankan, jadi tautan yang pernah dibagikan tidak berubah bila entri
+// dipublikkan lagi; backend sungguhan membuatnya sendiri
+const makeSlug = (entry) =>
+  `${entry.mountainId}-${entry.route.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).slice(2, 8)}`
+
+export async function setLogbookPublic(id, isPublic) {
+  if (USE_MOCK) {
+    const entry = findEntry(id)
+    entry.isPublic = isPublic
+    if (isPublic && !entry.slug) entry.slug = makeSlug(entry)
+    return wait({ isPublic: entry.isPublic, slug: entry.slug }, 300)
+  }
+  const { data } = await client.patch(`/logbooks/${id}/visibility`, { isPublic })
+  return data
 }
 
 export { MAX_PHOTOS }

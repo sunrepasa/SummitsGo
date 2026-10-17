@@ -59,3 +59,39 @@ export async function updateProfile(current, { name, username, bio, socials, dis
     throw apiError(err)
   }
 }
+
+const accountOf = (username) => accounts.find((a) => a.username === username)
+
+export async function changePassword(username, { currentPassword, newPassword }) {
+  if (USE_MOCK) {
+    await wait(null, 500)
+    const account = accountOf(username)
+    if (!account || account.password !== currentPassword) {
+      throw codedError('Kata sandi saat ini salah', 'INVALID_CREDENTIALS')
+    }
+    account.password = newPassword
+    return
+  }
+
+  try {
+    await client.put('/users/me/password', { currentPassword, newPassword })
+  } catch (err) {
+    throw apiError(err)
+  }
+}
+
+export async function setProfilePublic(isPublic) {
+  if (USE_MOCK) return wait({ isProfilePublic: isPublic }, 300)
+  const { data } = await client.patch('/users/me', { isProfilePublic: isPublic })
+  return data
+}
+
+export async function deleteAccount(username) {
+  if (USE_MOCK) {
+    await wait(null, 600)
+    const index = accounts.findIndex((a) => a.username === username)
+    if (index !== -1) accounts.splice(index, 1)
+    return
+  }
+  await client.delete('/users/me')
+}

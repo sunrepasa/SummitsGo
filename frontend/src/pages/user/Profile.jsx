@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BookOpen, ListChecks, Star, User } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import TopBar from '../../components/layout/TopBar'
 import GuestPrompt from '../../components/auth/GuestPrompt'
 import ProfileCard from '../../components/profile/ProfileCard'
@@ -62,10 +63,17 @@ function LogbookFeed({ state }) {
 }
 
 function ProfileLoggedIn() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const logbooks = useAsync(getMyLogbooks, [])
   const stats = logbooks.data ? getLogbookStats(logbooks.data) : null
-  const [editing, setEditing] = useState(false)
+  // tautan "Edit Profil" di Pengaturan membuka modal ini; state dibersihkan agar tidak terbuka lagi saat refresh
+  const [editing, setEditing] = useState(Boolean(location.state?.edit))
+
+  useEffect(() => {
+    if (location.state?.edit) navigate(location.pathname, { replace: true, state: null })
+  }, [location.state, location.pathname, navigate])
 
   return (
     <>
@@ -78,14 +86,6 @@ function ProfileLoggedIn() {
           <h2 className="pb-2.5 pt-4 font-heading text-[14.5px] font-bold md:pt-0 md:text-lg">Logbook</h2>
           <LogbookFeed state={logbooks} />
 
-          {/* sementara — pindah ke halaman Pengaturan & Privasi saat halaman itu dibuat */}
-          <button
-            type="button"
-            onClick={logout}
-            className="mt-6 rounded-full border border-line bg-paper px-5 py-2.5 text-[13px] font-semibold text-warn"
-          >
-            Keluar
-          </button>
         </section>
       </div>
 

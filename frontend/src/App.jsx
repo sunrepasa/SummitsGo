@@ -10,6 +10,8 @@ import Checklist from './pages/user/Checklist'
 import MountainDetail from './pages/user/MountainDetail'
 import ChecklistDetail from './pages/user/ChecklistDetail'
 import LogbookDetail from './pages/user/LogbookDetail'
+import Settings from './pages/user/Settings'
+import PublicLogbookSettings from './pages/user/PublicLogbookSettings'
 
 function Placeholder({ title }) {
   return (
@@ -39,7 +41,9 @@ export default function App() {
         <Route path="/u/:username" element={<Placeholder title="Profil Publik" />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />
-        <Route path="/settings" element={<Placeholder title="Pengaturan & Privasi" />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/public-logbook" element={<PublicLogbookSettings />} />
+        <Route path="/settings/:section" element={<Settings />} />
         <Route path="/saved-maps" element={<Placeholder title="Peta Tersimpan" />} />
       </Route>
     </Routes>

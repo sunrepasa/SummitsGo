@@ -10,6 +10,7 @@ export default function ConfirmDialog({
   busyLabel = 'Memproses...',
   busy = false,
   danger = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }) {
@@ -55,7 +56,7 @@ export default function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={busy}
+            disabled={busy || confirmDisabled}
             className={`flex-1 rounded-[11px] py-[11px] text-[12.5px] font-semibold text-white disabled:opacity-60 ${
               danger ? 'bg-warn' : 'bg-pine'
             }`}
