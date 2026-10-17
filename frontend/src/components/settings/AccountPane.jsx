@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import DeleteAccountDialog from './DeleteAccountDialog'
 import { ComingSoon, SettingRow, SettingsCard, linkButton } from './SettingsParts'
 import { deleteAccount } from '../../api/user'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
+import { useSignOut } from '../../hooks/useSignOut'
 import { formatDateRange } from '../../utils/date'
 
 export default function AccountPane() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
+  const signOut = useSignOut()
   const toast = useToast()
   const [deleting, setDeleting] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -21,9 +22,7 @@ export default function AccountPane() {
     try {
       await deleteAccount(user.username)
       toast.success('Akunmu sudah dihapus')
-      // pindah halaman sebelum keluar, supaya halaman ini tidak sempat mengarahkan ke Login
-      navigate('/', { replace: true })
-      logout()
+      signOut()
     } catch {
       setError('Gagal menghapus akun. Coba lagi.')
       setBusy(false)

@@ -1,29 +1,24 @@
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useParams } from 'react-router-dom'
 import BackTopBar from '../../components/layout/BackTopBar'
 import SettingsMenu from '../../components/settings/SettingsMenu'
 import SettingsSidebar from '../../components/settings/SettingsSidebar'
 import { DEFAULT_SECTION, SECTIONS } from '../../components/settings/sections'
 import { useAuth } from '../../context/AuthContext'
+import { useSignOut } from '../../hooks/useSignOut'
 
 // /settings: mobile menampilkan daftar, desktop langsung membuka panel Informasi Akun.
 // /settings/:section: mobile menampilkan satu panel penuh, desktop sidebar + panel.
 export default function Settings() {
   const { section } = useParams()
-  const { isLoggedIn, logout } = useAuth()
+  const { isLoggedIn } = useAuth()
   const location = useLocation()
-  const navigate = useNavigate()
+  const signOut = useSignOut()
 
   if (!isLoggedIn) return <Navigate to="/login" state={{ from: location.pathname }} replace />
   if (section && !SECTIONS[section]) return <Navigate to="/settings" replace />
 
   const current = section ?? DEFAULT_SECTION
   const { Pane, title } = SECTIONS[current]
-
-  const signOut = () => {
-    // pindah halaman sebelum keluar, supaya halaman ini tidak sempat mengarahkan ke Login
-    navigate('/', { replace: true })
-    logout()
-  }
 
   return (
     <>

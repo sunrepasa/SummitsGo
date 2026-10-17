@@ -95,7 +95,8 @@ export default function AuthPage({ mode }) {
 
   const { title, subtitle } = copy[mode]
   const switchMode = (next) => navigate(`/${next}`, { replace: true, state })
-  const continueAsGuest = () => navigate(homeFor(null, state?.from))
+  // halaman asal (state.from) pasti halaman yang butuh login, jadi tamu selalu ke Beranda
+  const continueAsGuest = () => navigate('/')
 
   return (
     <div className="flex min-h-screen flex-col bg-stone md:grid md:grid-cols-2">
