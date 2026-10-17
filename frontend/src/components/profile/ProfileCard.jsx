@@ -15,7 +15,8 @@ function Stat({ value, label }) {
   )
 }
 
-export default function ProfileCard({ user, stats, onEdit }) {
+// onEdit: tampilan pemilik (tombol Edit + tautan profil publik); onShare: tampilan pengunjung
+export default function ProfileCard({ user, stats, onEdit, onShare }) {
   const publicPath = `/u/${user.username}`
   const profile = profileOf(user)
   const { bio, display } = profile
@@ -35,25 +36,39 @@ export default function ProfileCard({ user, stats, onEdit }) {
         <div className="min-w-0 flex-1 md:flex-none md:self-stretch">
           <h2 className="truncate font-heading text-[15.5px] font-bold md:text-xl">{user.name}</h2>
           <p className="text-[11px] text-mute md:mt-0.5 md:text-[13px]">@{user.username}</p>
-          <Link
-            to={publicPath}
-            className="mt-1 flex items-center gap-1 text-[10.5px] font-semibold text-leaf-deep md:mt-2.5 md:justify-center md:text-xs"
-          >
-            <Link2 size={11} className="shrink-0" />
-            <span className="truncate">
-              {window.location.host}
-              {publicPath}
-            </span>
-          </Link>
+          {onEdit && (
+            <Link
+              to={publicPath}
+              className="mt-1 flex items-center gap-1 text-[10.5px] font-semibold text-leaf-deep md:mt-2.5 md:justify-center md:text-xs"
+            >
+              <Link2 size={11} className="shrink-0" />
+              <span className="truncate">
+                {window.location.host}
+                {publicPath}
+              </span>
+            </Link>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={onEdit}
-          className="self-start rounded-full bg-[#E7F0E1] px-[11px] py-[7px] text-[11px] font-semibold text-pine-deep md:mt-4 md:w-full md:self-stretch md:rounded-[11px] md:border md:border-line md:bg-paper md:px-[18px] md:py-2.5 md:text-[13px] md:text-ink md:hover:bg-stone"
-        >
-          Edit<span className="hidden md:inline"> Profil</span>
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="self-start rounded-full bg-[#E7F0E1] px-[11px] py-[7px] text-[11px] font-semibold text-pine-deep md:mt-4 md:w-full md:self-stretch md:rounded-[11px] md:border md:border-line md:bg-paper md:px-[18px] md:py-2.5 md:text-[13px] md:text-ink md:hover:bg-stone"
+          >
+            Edit<span className="hidden md:inline"> Profil</span>
+          </button>
+        )}
+        {!onEdit && onShare && (
+          <button
+            type="button"
+            onClick={onShare}
+            className="mt-4 hidden w-full items-center justify-center gap-2 rounded-[11px] border border-line bg-paper px-[18px] py-2.5 text-[13px] font-semibold hover:bg-stone md:flex"
+          >
+            <Link2 size={14} />
+            Bagikan Profil
+          </button>
+        )}
       </div>
 
       {bio && (

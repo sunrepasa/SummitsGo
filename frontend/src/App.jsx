@@ -12,6 +12,8 @@ import ChecklistDetail from './pages/user/ChecklistDetail'
 import LogbookDetail from './pages/user/LogbookDetail'
 import Settings from './pages/user/Settings'
 import PublicLogbookSettings from './pages/user/PublicLogbookSettings'
+import PublicProfile from './pages/user/PublicProfile'
+import PublicEntry from './pages/user/PublicEntry'
 
 function Placeholder({ title }) {
   return (
@@ -38,7 +40,8 @@ export default function App() {
         <Route path="/mountain/:id" element={<MountainDetail />} />
         <Route path="/logbook" element={<Logbook />} />
         <Route path="/logbook/:id" element={<LogbookDetail />} />
-        <Route path="/u/:username" element={<Placeholder title="Profil Publik" />} />
+        <Route path="/u/:username" element={<PublicProfile />} />
+        <Route path="/e/:slug" element={<PublicEntry />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />
         <Route path="/settings" element={<Settings />} />
