@@ -9,6 +9,7 @@ import LogbookHero from '../../components/logbook/detail/LogbookHero'
 import NoteSection from '../../components/logbook/detail/NoteSection'
 import PhotoSection from '../../components/logbook/detail/PhotoSection'
 import ReviewModal from '../../components/mountain/detail/ReviewModal'
+import ShareEntryDialog from '../../components/share/ShareEntryDialog'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
@@ -68,12 +69,14 @@ function DetailSkeleton() {
 function DetailContent({ id }) {
   const navigate = useNavigate()
   const toast = useToast()
+  const { user } = useAuth()
   const { data: entry, error, loading, reload } = useAsync(() => getLogbookById(id), [id])
 
   const [editingNote, setEditingNote] = useState(false)
   const [savingNote, setSavingNote] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [reviewing, setReviewing] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   // suka diubah langsung di layar (optimistis), lalu dikembalikan bila server menolak
@@ -138,7 +141,7 @@ function DetailContent({ id }) {
   }
 
   const startEdit = () => setEditingNote(true)
-  const share = () => toast.success('Segera hadir: bagikan entri logbook')
+  const share = () => setSharing(true)
 
   return (
     <>
@@ -208,6 +211,8 @@ function DetailContent({ id }) {
           }}
         />
       )}
+
+      {sharing && <ShareEntryDialog entry={entry} username={user?.username} onClose={() => setSharing(false)} />}
 
       {confirmDelete && (
         <ConfirmDialog
