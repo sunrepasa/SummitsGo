@@ -53,7 +53,7 @@ function StatCard({ data, photo }) {
   ]
   return (
     <div className="absolute inset-0 bg-paper text-ink">
-      <div className="absolute inset-x-0 top-0 h-[56%]" style={{ background: photoBackground(photo) }}>
+      <div className="absolute inset-x-0 top-0 h-[64%]" style={{ background: photoBackground(photo) }}>
         <span className="absolute left-3.5 top-3.5">
           <VerifiedTag verified={data.verified} />
         </span>
@@ -107,10 +107,11 @@ function Minimal({ data }) {
 }
 
 // Ukuran asli poster 270x480. Dipakai apa adanya untuk render PNG; tampilan kecil memakai PosterPreview.
-export default function PosterCanvas({ template, data, photo }) {
+// rounded: sudut membulat hanya untuk tampilan layar; gambar yang diunduh harus persegi penuh (tanpa sudut transparan)
+export default function PosterCanvas({ template, data, photo, rounded = true }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl font-body"
+      className={`relative overflow-hidden font-body ${rounded ? 'rounded-2xl' : ''}`}
       style={{ width: POSTER_WIDTH, height: POSTER_HEIGHT }}
     >
       {template === 'full' && <FullPhoto data={data} photo={photo} />}

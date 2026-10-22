@@ -142,7 +142,7 @@ export default function ShareEntryDialog({ entry, username, onClose }) {
       {/* salinan ukuran asli di luar layar; inilah yang dirender menjadi PNG */}
       <div aria-hidden="true" className="pointer-events-none fixed left-[-10000px] top-0">
         <div ref={exportRef}>
-          <PosterCanvas template={template} data={data} photo={photo} />
+          <PosterCanvas template={template} data={data} photo={photo} rounded={false} />
         </div>
       </div>
     </>
