@@ -17,12 +17,12 @@ export function getEarnedBadges(stats) {
         icon: badge.icon,
         image: current.image ?? badge.image,
         tier: current.tier,
-        tierName: TIER_NAMES[current.tier],
+        tierName: current.tierName ?? TIER_NAMES[current.tier],
         label: current.label,
         description: badge.describe(current.min),
         valueText: badge.format(value),
         tierCount: badge.tiers.length,
-        next: next && { tierName: TIER_NAMES[next.tier], description: badge.describe(next.min) },
+        next: next && { tierName: next.tierName ?? TIER_NAMES[next.tier], description: badge.describe(next.min) },
       },
     ]
   })

@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const palettes = {
   bronze: { ringFrom: '#E8B589', ringTo: '#9A5526', faceFrom: '#CE9262', faceTo: '#8B4A1D', ink: '#FFF4EA' },
   silver: { ringFrom: '#F4F6F8', ringTo: '#9AA3AB', faceFrom: '#D5DBE0', faceTo: '#8B949C', ink: '#2A3138' },
@@ -6,17 +8,21 @@ const palettes = {
 }
 
 export default function BadgeMedal({ icon: Icon, tier, label, image, size = 56, showLabel = true }) {
+  // bila file gambar gagal dimuat (hilang atau salah nama), kembali ke lencana gambar-otomatis
+  const [failedImage, setFailedImage] = useState(null)
   const palette = palettes[tier]
   const withLabel = showLabel && Boolean(label)
 
-  if (image) {
+  if (image && failedImage !== image) {
+    // gambar lencana berbentuk perisai transparan dan sudah memuat tulisannya sendiri: jangan dipotong bulat
     return (
       <img
         src={image}
         alt=""
         width={size}
         height={size}
-        className="shrink-0 rounded-full object-cover"
+        onError={() => setFailedImage(image)}
+        className="shrink-0 object-contain"
       />
     )
   }
