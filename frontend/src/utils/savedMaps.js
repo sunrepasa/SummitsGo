@@ -20,6 +20,8 @@ const write = (list) => {
   }
 }
 
+export const mapIdOf = (mountainId, route) => `${mountainId}:${route}`
+
 export const getSavedMap = (id) => getSavedMaps().find((m) => m.id === id) ?? null
 
 export function putSavedMap(meta) {
