@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Check, ChevronDown, Download, LoaderCircle, MapPinned, MapPinOff, WifiOff } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, ChevronUp, Download, LoaderCircle, MapPinned, MapPinOff, WifiOff } from 'lucide-react'
 import { facilityIcon } from '../mountain/detail/facilityMeta'
 import ProgressBar from '../ui/ProgressBar'
 import { useNow } from '../../hooks/useNow'
@@ -113,6 +113,22 @@ function LiveStatus({ status, position, weakSignal, nav }) {
   )
 }
 
+// teks satu baris saat panel diciutkan: status terpenting saja
+function summaryOf({ routeMap, live, position, nav, download }) {
+  if (download.phase === 'downloading') {
+    const total = download.progress.total
+    return `Mengunduh peta… ${total ? Math.round((download.progress.done / total) * 100) : 0}%`
+  }
+  if (live.status === 'active' && position && nav) {
+    if (nav.isFar) return `Jauh dari jalur (±${formatDistance(nav.offRoute)})`
+    if (nav.atSummit) return 'Kamu sudah sampai di puncak'
+    return `Menuju ${nav.next.name} · ${formatDistance(nav.nextDistance)}`
+  }
+  if (live.status === 'waiting' || live.status === 'active') return 'Mencari posisimu…'
+  if (live.status === 'denied') return 'Izin lokasi ditolak'
+  return `${routeMap.mountain.name} · Via ${routeMap.route}`
+}
+
 function Checkpoints({ checkpoints, onFocus }) {
   return (
     <div className="mt-4 hidden min-h-0 flex-1 flex-col md:flex">
@@ -207,6 +223,8 @@ export default function MapPanel({
   onCancelDownload,
   onRemove,
   onFocus,
+  collapsed,
+  onToggleCollapse,
 }) {
   const liveOn = live.status === 'active' || live.status === 'waiting'
   const downloading = download.phase === 'downloading'
@@ -215,8 +233,38 @@ export default function MapPanel({
   const btn = 'flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-[11px] text-[12.5px] font-semibold'
 
   return (
-    <section className="absolute inset-x-4 bottom-5 z-10 flex max-h-[65%] flex-col overflow-y-auto rounded-2xl bg-paper p-4 shadow-[0_-6px_20px_rgba(0,0,0,.12)] md:inset-y-4 md:left-4 md:right-auto md:max-h-none md:w-[340px] md:overflow-visible md:p-5 md:shadow-[0_12px_32px_rgba(0,0,0,.18)]">
-      <header className="mb-4 hidden items-center gap-3 md:flex">
+    <section
+      className={`absolute inset-x-4 bottom-5 z-10 flex max-h-[65%] flex-col overflow-y-auto rounded-2xl bg-paper p-4 shadow-[0_-6px_20px_rgba(0,0,0,.12)] md:inset-y-4 md:left-4 md:right-auto md:max-h-none md:w-[340px] md:overflow-visible md:p-5 md:shadow-[0_12px_32px_rgba(0,0,0,.18)] ${
+        collapsed ? 'md:bottom-auto' : ''
+      }`}
+    >
+      {/* mobile: pegangan untuk menciutkan; saat diciutkan berubah jadi satu baris ringkas */}
+      {collapsed ? (
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-label="Buka panel"
+          aria-expanded={false}
+          className="flex w-full items-center justify-between gap-3 text-left md:hidden"
+        >
+          <span className="min-w-0 truncate text-[12.5px] font-bold">
+            {summaryOf({ routeMap, live, position, nav, download })}
+          </span>
+          <ChevronUp size={18} className="shrink-0 text-mute" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-label="Ciutkan panel"
+          aria-expanded
+          className="-mt-2 mb-1 flex w-full justify-center text-mute md:hidden"
+        >
+          <ChevronDown size={20} />
+        </button>
+      )}
+
+      <header className={`hidden items-center gap-3 md:flex ${collapsed ? '' : 'mb-4'}`}>
         <button
           type="button"
           onClick={onBack}
@@ -225,14 +273,25 @@ export default function MapPanel({
         >
           <ArrowLeft size={16} />
         </button>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="truncate font-heading text-base font-bold">{routeMap.mountain.name}</h1>
           <p className="text-xs text-mute">
             Via {routeMap.route} · {routeMap.mountain.elevation.toLocaleString('id-ID')} mdpl
           </p>
         </div>
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? 'Buka panel' : 'Ciutkan panel'}
+          aria-expanded={!collapsed}
+          className="flex size-8 shrink-0 items-center justify-center rounded-full text-mute hover:bg-stone"
+        >
+          {collapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+        </button>
       </header>
 
+      {!collapsed && (
+        <>
       <Notice online={online} saved={Boolean(download.saved)} />
 
       <LiveStatus status={live.status} position={position} weakSignal={live.weakSignal} nav={nav} />
@@ -297,6 +356,8 @@ export default function MapPanel({
       <Checkpoints checkpoints={routeMap.checkpoints} onFocus={onFocus} />
 
       {demo && <DemoControls checkpoints={routeMap.checkpoints} sim={demo.sim} onChange={demo.onChange} />}
+        </>
+      )}
     </section>
   )
 }

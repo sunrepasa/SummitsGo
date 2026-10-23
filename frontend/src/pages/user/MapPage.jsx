@@ -37,6 +37,8 @@ function MapReady({ routeMap, goBack }) {
   // ?live=1 dan ?download=1 dikirim tombol di halaman detail gunung; dibaca sekali saat halaman dibuka
   const live = useLiveLocation({ autoStart: searchParams.get('live') === '1' })
   const [legendOpen, setLegendOpen] = useState(false)
+  // panel bisa diciutkan agar peta terlihat penuh
+  const [collapsed, setCollapsed] = useState(false)
   const [confirm, setConfirm] = useState(() =>
     searchParams.get('download') === '1' && !download.saved ? 'download' : null,
   )
@@ -119,7 +121,9 @@ function MapReady({ routeMap, goBack }) {
         type="button"
         onClick={recenter}
         aria-label="Pusatkan peta ke posisimu"
-        className={`${roundBtn} absolute bottom-[200px] right-4 z-10 size-10 md:bottom-[112px]`}
+        className={`${roundBtn} absolute right-4 z-10 size-10 transition-[bottom] md:bottom-[112px] ${
+          collapsed ? 'bottom-[88px]' : 'bottom-[200px]'
+        }`}
       >
         <LocateFixed size={17} />
       </button>
@@ -143,6 +147,8 @@ function MapReady({ routeMap, goBack }) {
         onCancelDownload={download.cancel}
         onRemove={() => setConfirm('remove')}
         onFocus={(c) => mapRef.current?.focusPoint(c.lat, c.lng)}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((v) => !v)}
       />
 
       {confirm === 'download' && (
