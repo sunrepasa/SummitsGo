@@ -90,15 +90,17 @@ function DetailContent({ mountain: m }) {
     }
   }
 
-  const comingSoon = () => toast.success('Segera hadir: peta offline dan Live Location')
+  // peta terbuka untuk guest, jadi tombolnya tidak lewat requireLogin
+  const openMap = (extra) => () =>
+    navigate(`/mountain/${m.id}/map?route=${encodeURIComponent(activeRoute.name)}${extra}`)
 
   const map = (className) => (
     <MapCard
       routes={m.routes}
       activeRoute={activeRoute}
       onSelectRoute={setSelectedRoute}
-      onDownload={comingSoon}
-      onLive={comingSoon}
+      onDownload={openMap('&download=1')}
+      onLive={openMap('&live=1')}
       className={className}
     />
   )

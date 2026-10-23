@@ -14,6 +14,8 @@ import Settings from './pages/user/Settings'
 import PublicLogbookSettings from './pages/user/PublicLogbookSettings'
 import PublicProfile from './pages/user/PublicProfile'
 import PublicEntry from './pages/user/PublicEntry'
+import MapPage from './pages/user/MapPage'
+import SavedMaps from './pages/user/SavedMaps'
 
 function Placeholder({ title }) {
   return (
@@ -31,6 +33,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/register" element={<AuthPage mode="register" />} />
+      {/* peta layar penuh tanpa navigasi, dan terbuka untuk guest */}
+      <Route path="/mountain/:id/map" element={<MapPage />} />
 
       <Route element={<UserLayout />}>
         <Route path="/" element={<Home />} />
@@ -47,7 +51,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/settings/public-logbook" element={<PublicLogbookSettings />} />
         <Route path="/settings/:section" element={<Settings />} />
-        <Route path="/saved-maps" element={<Placeholder title="Peta Tersimpan" />} />
+        <Route path="/saved-maps" element={<SavedMaps />} />
       </Route>
     </Routes>
   )

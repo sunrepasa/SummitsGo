@@ -1,0 +1,14 @@
+{
+  "name": "SummitsGo",
+  "short_name": "SummitsGo",
+  "description": "Info pendakian gunung: jalur, checklist, logbook, peta offline, dan Live Location.",
+  "lang": "id",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1F3A2E",
+  "theme_color": "#1F3A2E",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
