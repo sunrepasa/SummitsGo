@@ -103,7 +103,11 @@ export async function createLogbook({ mountainId, route, startDate, days, note, 
 export async function getLogbookById(id) {
   if (USE_MOCK) {
     const entry = withMountain(findEntry(id))
-    return wait({ ...entry, photos: [...entry.photos], crew: [...entry.crew] }, 300)
+    // rekap berapa kali gunung ini didaki: terverifikasi vs ditambah manual (backend nyata mengirim field `climbs` yang sama)
+    const sameMountain = logbooks.filter((e) => e.mountainId === entry.mountain.id)
+    const verified = sameMountain.filter((e) => e.verified).length
+    const climbs = { verified, manual: sameMountain.length - verified }
+    return wait({ ...entry, climbs, photos: [...entry.photos], crew: [...entry.crew] }, 300)
   }
   const { data } = await client.get(`/logbooks/${id}`)
   return data

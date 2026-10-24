@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BadgeCheck, ChevronRight } from 'lucide-react'
-import Badge from '../ui/Badge'
+import { Check, ChevronRight } from 'lucide-react'
 import { formatDateRange, formatNights } from '../../utils/date'
 import { coverBackground } from '../../utils/mountainLabels'
 
@@ -13,22 +12,25 @@ export default function LogbookListItem({ entry, repeat = 1 }) {
       to={`/logbook/${id}`}
       className="flex items-center gap-3 rounded-[14px] border border-line bg-paper p-3 md:gap-[18px] md:rounded-2xl md:py-3.5 md:pl-3.5 md:pr-[18px] md:transition md:hover:-translate-y-0.5 md:hover:shadow-lg"
     >
-      <div
-        className="size-14 shrink-0 rounded-[10px] md:size-[84px] md:rounded-xl"
-        style={{ background: coverBackground(mountain.cover) }}
-      />
+      <div className="relative shrink-0">
+        <div
+          className="size-14 rounded-[10px] md:size-[84px] md:rounded-xl"
+          style={{ background: coverBackground(mountain.cover) }}
+        />
+        {verified && (
+          <span
+            role="img"
+            aria-label="Terverifikasi"
+            title="Terverifikasi"
+            className="absolute -bottom-1 -right-1 flex size-[18px] items-center justify-center rounded-full bg-pine text-white ring-2 ring-paper md:-bottom-1.5 md:-right-1.5 md:size-6 md:ring-[3px]"
+          >
+            <Check size={11} strokeWidth={3.5} className="md:size-3.5" />
+          </span>
+        )}
+      </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 md:gap-x-2">
-          <h3 className="whitespace-nowrap text-[13.5px] font-bold md:text-base">{mountain.name}</h3>
-          {verified && (
-            <Badge>
-              <BadgeCheck size={11} />
-              Terverifikasi
-            </Badge>
-          )}
-          {repeat > 1 && <Badge variant="muted">×{repeat}</Badge>}
-        </div>
+        <h3 className="truncate text-[13.5px] font-bold md:text-base">{mountain.name}</h3>
         <p className="mt-0.5 text-[11px] text-mute md:mt-[5px] md:text-[12.5px]">
           Via {route}
           {!verified && ' · Ditambahkan manual'}
@@ -36,6 +38,7 @@ export default function LogbookListItem({ entry, repeat = 1 }) {
         <p className="mt-[5px] text-[10.5px] text-mute md:mt-[3px] md:text-xs">
           {formatDateRange(startDate, endDate)}
           {duration && ` · ${duration}`}
+          {repeat > 1 && ` · Didaki ${repeat}×`}
         </p>
       </div>
 

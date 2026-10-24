@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-route
 import CrewSection from '../../components/logbook/detail/CrewSection'
 import EntryActions from '../../components/logbook/detail/EntryActions'
 import EntryStats from '../../components/logbook/detail/EntryStats'
+import ClimbHistory from '../../components/logbook/detail/ClimbHistory'
 import LikeButton from '../../components/logbook/detail/LikeButton'
 import LogbookHero from '../../components/logbook/detail/LogbookHero'
 import NoteSection from '../../components/logbook/detail/NoteSection'
@@ -154,6 +155,7 @@ function DetailContent({ id }) {
           </div>
 
           <EntryStats entry={entry} />
+          <ClimbHistory climbs={entry.climbs} mountainName={entry.mountain.name} />
 
           <PhotoSection
             photos={entry.photos}
