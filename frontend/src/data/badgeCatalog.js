@@ -9,7 +9,7 @@ const fmt = (n) => n.toLocaleString('id-ID')
 // (tidak muncul di profil maupun galeri pilihan) walau syaratnya sudah terpenuhi.
 // Untuk memasang gambar baru: taruh file di public/badges lalu isi IMAGES di bawah.
 
-// satu kategori ketinggian: tingkat I = 1 pendakian, II = total 5, III = total 10 (di kategori itu)
+// satu kategori ketinggian: tingkat I = 1 gunung, II = total 5, III = total 10 gunung berbeda (di kategori itu)
 const categoryTiers = (slug) =>
   [
     { min: 1, tierName: 'I' },
@@ -27,10 +27,11 @@ const IMAGES = {
 
 const describeCategory = (range) => (min) =>
   min === 1
-    ? `menyelesaikan 1 pendakian terverifikasi di gunung ${range}`
-    : `mengumpulkan total ${min} pendakian terverifikasi di gunung ${range}`
+    ? `mendaki 1 gunung ${range} (terverifikasi)`
+    : `mendaki total ${min} gunung berbeda ${range} (terverifikasi)`
 
 const trips = (value) => `${value} pendakian`
+const mountainsCount = (value) => `${value} gunung`
 
 export const badgeCatalog = [
   {
@@ -46,7 +47,7 @@ export const badgeCatalog = [
     name: 'Beginner',
     metric: (stats) => stats.verifiedByCategory.beginner,
     describe: describeCategory(`di bawah ${fmt(WANDERER_MIN)} mdpl`),
-    format: trips,
+    format: mountainsCount,
     tiers: categoryTiers('beginner'),
   },
   {
@@ -54,7 +55,7 @@ export const badgeCatalog = [
     name: 'Wanderer',
     metric: (stats) => stats.verifiedByCategory.wanderer,
     describe: describeCategory(`setinggi ${fmt(WANDERER_MIN)} sampai ${fmt(VETERAN_MIN - 1)} mdpl`),
-    format: trips,
+    format: mountainsCount,
     tiers: categoryTiers('wanderer'),
   },
   {
@@ -62,7 +63,7 @@ export const badgeCatalog = [
     name: 'Veteran',
     metric: (stats) => stats.verifiedByCategory.veteran,
     describe: describeCategory(`setinggi ${fmt(VETERAN_MIN)} mdpl ke atas`),
-    format: trips,
+    format: mountainsCount,
     tiers: categoryTiers('veteran'),
   },
 ]

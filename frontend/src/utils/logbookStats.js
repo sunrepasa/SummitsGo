@@ -8,10 +8,11 @@ export function getLogbookStats(entries) {
   const verifiedEntries = entries.filter((e) => e.verified)
   const verified = uniqueMountains(verifiedEntries)
 
-  // jumlah pendakian terverifikasi per kategori ketinggian; mendaki gunung yang sama dua kali dihitung dua kali
+  // jumlah gunung BERBEDA yang sudah didaki (terverifikasi) per kategori ketinggian;
+  // mendaki gunung yang sama berulang kali tidak menambah hitungan
   const verifiedByCategory = { beginner: 0, wanderer: 0, veteran: 0 }
-  verifiedEntries.forEach((e) => {
-    verifiedByCategory[elevationCategory(e.mountain.elevation)] += 1
+  verified.forEach((mountain) => {
+    verifiedByCategory[elevationCategory(mountain.elevation)] += 1
   })
 
   return {
