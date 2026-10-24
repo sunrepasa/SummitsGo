@@ -79,7 +79,7 @@ export default function ProfileCard({ user, stats, onEdit, onShare }) {
 
       <ProfileLinks profile={profile} />
 
-      <ProfileBadges stats={stats} hidden={display.hiddenBadges} />
+      <ProfileBadges stats={stats} shown={display.shownBadges} />
 
       {joined && (
         <p className="mt-3 flex items-center justify-center gap-1 text-[11px] text-mute">

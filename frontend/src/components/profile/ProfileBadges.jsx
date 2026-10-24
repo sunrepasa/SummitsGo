@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import BadgeMedal from '../ui/BadgeMedal'
 import BadgePopover from './BadgePopover'
-import { getEarnedBadges } from '../../utils/badges'
+import { getEarnedBadges, selectDisplayedBadges } from '../../utils/badges'
 import { popoverPosition } from '../../utils/popoverPosition'
 
-export default function ProfileBadges({ stats, hidden = [] }) {
+export default function ProfileBadges({ stats, shown = null }) {
   const [active, setActive] = useState(null)
   if (!stats) return null
 
-  const badges = getEarnedBadges(stats).filter((b) => !hidden.includes(b.id))
+  const badges = selectDisplayedBadges(getEarnedBadges(stats), shown)
   if (badges.length === 0) return null
 
   const toggle = (badge) => (e) => {
@@ -31,7 +31,7 @@ export default function ProfileBadges({ stats, hidden = [] }) {
               aria-label={b.tierName ? `${b.name}, tingkat ${b.tierName}` : b.name}
               className="block rounded-full transition hover:-translate-y-0.5"
             >
-              <BadgeMedal icon={b.icon} tier={b.tier} label={b.label} image={b.image} size={44} />
+              <BadgeMedal image={b.image} size={44} />
             </button>
           </li>
         ))}

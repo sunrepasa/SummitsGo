@@ -19,6 +19,7 @@ const rawMountains = [
   { id: 'lawu', name: 'Gunung Lawu', location: 'Jawa Tengah', elevation: 3265, difficulty: 'medium', status: 'open', rating: 4.6, reviewCount: 167, popularity: 300, addedAt: '2026-09-28', cover: covers.earth },
   { id: 'gede', name: 'Gunung Gede', location: 'Jawa Barat', elevation: 2958, difficulty: 'medium', status: 'quota_full', rating: 4.5, reviewCount: 201, popularity: 280, addedAt: '2026-09-10', cover: covers.sky },
   { id: 'sindoro', name: 'Gunung Sindoro', location: 'Temanggung', elevation: 3153, difficulty: 'medium', status: 'open', rating: 4.4, reviewCount: 77, popularity: 200, addedAt: '2026-10-02', cover: covers.dusk },
+  { id: 'nglanggeran', name: 'Gunung Api Purba Nglanggeran', location: 'Gunungkidul', elevation: 700, difficulty: 'beginner', status: 'open', rating: 4.6, reviewCount: 61, popularity: 140, addedAt: '2026-10-05', cover: covers.earth },
   { id: 'telomoyo', name: 'Gunung Telomoyo', location: 'Magelang', elevation: 2211, difficulty: 'beginner', status: 'open', rating: 4.3, reviewCount: 54, popularity: 90, addedAt: '2026-09-15', cover: covers.moss },
 ]
 
@@ -35,6 +36,7 @@ const provinces = {
   gede: 'Jawa Barat',
   sindoro: 'Jawa Tengah',
   telomoyo: 'Jawa Tengah',
+  nglanggeran: 'DI Yogyakarta',
 }
 
 export const mountains = rawMountains.map((m) => ({ ...m, province: provinces[m.id] }))

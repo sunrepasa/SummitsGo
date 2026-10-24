@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import BadgeMedal from '../ui/BadgeMedal'
 import { POPOVER_WIDTH } from '../../utils/popoverPosition'
 
-export default function BadgePopover({ badge, position, onClose }) {
+export default function BadgePopover({ badge, position, onClose, zClass = 'z-[45]' }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -34,11 +34,11 @@ export default function BadgePopover({ badge, position, onClose }) {
       ref={ref}
       role="dialog"
       aria-label={badge.name}
-      className="fixed z-[45] animate-[modal-in_.15s_ease-out] rounded-2xl border border-line bg-paper p-4 text-left shadow-lg"
+      className={`fixed ${zClass} animate-[modal-in_.15s_ease-out] rounded-2xl border border-line bg-paper p-4 text-left shadow-lg`}
       style={{ ...position, width: POPOVER_WIDTH, maxWidth: 'calc(100vw - 24px)' }}
     >
       <div className="flex items-center gap-3">
-        <BadgeMedal icon={badge.icon} tier={badge.tier} label={badge.label} image={badge.image} size={64} />
+        <BadgeMedal image={badge.image} size={64} />
         <div className="min-w-0">
           <p className="font-heading text-sm font-bold leading-tight">{badge.name}</p>
           {badge.tierName && (

@@ -51,6 +51,15 @@ export const logbooks = [
     crew: [],
     checklistName: null,
   },
+  {
+    // satu-satunya pendakian terverifikasi di bawah 1.500 mdpl: memberi lencana Beginner I
+    id: 'lb-5', mountainId: 'nglanggeran', route: 'Jalur Utama', startDate: '2026-10-10', endDate: '2026-10-10', nights: null,
+    verified: true, likes: 3, likedByMe: false, isPublic: false, slug: null,
+    note: 'Tektok sore buat nikmatin sunset dari puncak. Jalurnya pendek dan ramah buat pemula.',
+    photos: [],
+    crew: [me],
+    checklistName: 'Nglanggeran Sunset',
+  },
 ]
 
 // Mode mock hanya menyimpan data di memori, sehingga hilang saat halaman dimuat ulang. Status publik

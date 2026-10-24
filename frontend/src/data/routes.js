@@ -11,4 +11,5 @@ export const routesByMountain = {
   gede: ['Cibodas', 'Gunung Putri', 'Salabintana'],
   sindoro: ['Kledung', 'Alang-Alang Sewu', 'Sigedang'],
   telomoyo: ['Kopeng'],
+  nglanggeran: ['Jalur Utama'],
 }

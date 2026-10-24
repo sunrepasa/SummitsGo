@@ -19,7 +19,8 @@ export function profileOf(user) {
       tiktok: display.tiktok ?? true,
       instagram: display.instagram ?? true,
       website: display.website ?? true,
-      hiddenBadges: [...(display.hiddenBadges ?? [])].sort(),
+      // null = belum memilih (otomatis); array = id lencana pilihan pengguna, urut sesuai pilihan
+      shownBadges: Array.isArray(display.shownBadges) ? [...display.shownBadges] : null,
     },
   }
 }

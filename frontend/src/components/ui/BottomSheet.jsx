@@ -2,13 +2,13 @@ import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
-export default function BottomSheet({ open, onClose, title, titleAddon, children, footer, modal = false }) {
+export default function BottomSheet({ open, onClose, title, titleAddon, children, footer, modal = false, closeOnEscape = true }) {
   const panelRef = useRef(null)
 
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && closeOnEscape) onClose()
     }
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -17,7 +17,7 @@ export default function BottomSheet({ open, onClose, title, titleAddon, children
       document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, onClose])
+  }, [open, onClose, closeOnEscape])
 
   // efek terpisah dari yang di atas: onClose sering berganti identitas tiap render,
   // dan fokus tidak boleh direbut ulang setiap kali itu terjadi

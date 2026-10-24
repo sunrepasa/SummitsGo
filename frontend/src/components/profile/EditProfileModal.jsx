@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Check, Lock, RefreshCw, X } from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import BadgeMedal from '../ui/BadgeMedal'
+import BadgePickerSheet from './BadgePickerSheet'
 import BottomSheet from '../ui/BottomSheet'
+import CollapsibleSection from './CollapsibleSection'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import { Field, Input, PrefixInput, Textarea } from '../ui/FormControls'
 import Toggle from '../ui/Toggle'
@@ -11,7 +13,7 @@ import { useToast } from '../../context/ToastContext'
 import { updateProfile } from '../../api/user'
 import { useUsernameCheck } from '../../hooks/useUsernameCheck'
 import { dateToIso, formatDateRange } from '../../utils/date'
-import { getEarnedBadges } from '../../utils/badges'
+import { MAX_DISPLAYED_BADGES, getEarnedBadges, selectDisplayedBadges } from '../../utils/badges'
 import { BIO_MAX, SOCIAL_MAX, parseWebsite, profileOf, validateHandle } from '../../utils/profile'
 import { getUsernameUnlockDate, normalizeUsername, validateUsername } from '../../utils/username'
 
@@ -82,6 +84,10 @@ export default function EditProfileModal({ onClose, stats }) {
   const [confirming, setConfirming] = useState(false)
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  // bagian panjang diciutkan di awal supaya formulir tidak terlalu panjang digulir
+  const [linksOpen, setLinksOpen] = useState(false)
+  const [displayOpen, setDisplayOpen] = useState(false)
+  const [picking, setPicking] = useState(false)
 
   const unlockDate = getUsernameUnlockDate(user.usernameChangedAt)
   const locked = Boolean(unlockDate)
@@ -106,7 +112,7 @@ export default function EditProfileModal({ onClose, stats }) {
   const draft = {
     bio: bio.trim(),
     socials: { tiktok: socials.tiktok, instagram: socials.instagram, website: website.href },
-    display: { ...display, hiddenBadges: [...display.hiddenBadges].sort() },
+    display,
   }
   const profileChanged = JSON.stringify(draft) !== JSON.stringify(current)
 
@@ -138,11 +144,29 @@ export default function EditProfileModal({ onClose, stats }) {
   const setShow = (key) => (on) => setDisplay((d) => ({ ...d, [key]: on }))
 
   const earned = stats ? getEarnedBadges(stats) : null
-  const toggleBadge = (id) => (on) =>
-    setDisplay((d) => ({
-      ...d,
-      hiddenBadges: on ? d.hiddenBadges.filter((b) => b !== id) : [...d.hiddenBadges, id],
-    }))
+  // lencana yang sedang dipilih (atau otomatis lima pertama bila belum pernah memilih)
+  const shownBadges = earned ? selectDisplayedBadges(earned, display.shownBadges) : []
+  const shownIds = shownBadges.map((b) => b.id)
+  const toggleBadge = (id) =>
+    setDisplay((d) => {
+      const ids = selectDisplayedBadges(earned, d.shownBadges).map((b) => b.id)
+      return { ...d, shownBadges: ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id] }
+    })
+
+  const linkErrors = Boolean(tiktokError || instagramError || website.error)
+  const filledLinks = [
+    socials.tiktok && 'TikTok',
+    socials.instagram && 'Instagram',
+    socials.website.trim() && 'Link Bebas',
+  ].filter(Boolean)
+  const linksSummary = linkErrors
+    ? 'Ada isian yang perlu diperbaiki'
+    : filledLinks.length > 0
+      ? filledLinks.join(', ')
+      : 'Belum diisi'
+  const displaySummary = earned
+    ? `Bergabung sejak, statistik, ${shownBadges.length} lencana`
+    : 'Bergabung sejak, statistik, lencana'
 
   const save = async () => {
     setSaving(true)
@@ -177,6 +201,7 @@ export default function EditProfileModal({ onClose, stats }) {
         open
         modal
         onClose={guardedClose}
+        closeOnEscape={!picking}
         title="Edit Profil"
         footer={
           <div className="flex gap-2.5">
@@ -273,121 +298,149 @@ export default function EditProfileModal({ onClose, stats }) {
             </p>
           </Field>
 
-          <SectionTitle>Tautan</SectionTitle>
-          <LinkField
-            id="ep-tiktok"
-            label="TikTok"
-            show={display.tiktok}
-            onShow={setShow('tiktok')}
-            canShow={socials.tiktok !== ''}
-            error={tiktokError}
+          <CollapsibleSection
+            title="Tautan"
+            summary={linksSummary}
+            warn={linkErrors}
+            open={linksOpen}
+            onToggle={() => setLinksOpen((v) => !v)}
           >
-            <PrefixInput
-              prefix="@"
+            <LinkField
               id="ep-tiktok"
-              value={socials.tiktok}
-              onChange={setSocial('tiktok', normalizeUsername)}
-              placeholder="username"
-              invalid={Boolean(tiktokError)}
-              autoComplete="off"
-              autoCapitalize="none"
-              spellCheck={false}
-            />
-          </LinkField>
+              label="TikTok"
+              show={display.tiktok}
+              onShow={setShow('tiktok')}
+              canShow={socials.tiktok !== ''}
+              error={tiktokError}
+            >
+              <PrefixInput
+                prefix="@"
+                id="ep-tiktok"
+                value={socials.tiktok}
+                onChange={setSocial('tiktok', normalizeUsername)}
+                placeholder="username"
+                invalid={Boolean(tiktokError)}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+              />
+            </LinkField>
 
-          <LinkField
-            id="ep-instagram"
-            label="Instagram"
-            show={display.instagram}
-            onShow={setShow('instagram')}
-            canShow={socials.instagram !== ''}
-            error={instagramError}
-          >
-            <PrefixInput
-              prefix="@"
+            <LinkField
               id="ep-instagram"
-              value={socials.instagram}
-              onChange={setSocial('instagram', normalizeUsername)}
-              placeholder="username"
-              invalid={Boolean(instagramError)}
-              autoComplete="off"
-              autoCapitalize="none"
-              spellCheck={false}
-            />
-          </LinkField>
+              label="Instagram"
+              show={display.instagram}
+              onShow={setShow('instagram')}
+              canShow={socials.instagram !== ''}
+              error={instagramError}
+            >
+              <PrefixInput
+                prefix="@"
+                id="ep-instagram"
+                value={socials.instagram}
+                onChange={setSocial('instagram', normalizeUsername)}
+                placeholder="username"
+                invalid={Boolean(instagramError)}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+              />
+            </LinkField>
 
-          <LinkField
-            id="ep-website"
-            label="Link Bebas"
-            show={display.website}
-            onShow={setShow('website')}
-            canShow={socials.website.trim() !== ''}
-            error={website.error}
-            hint="Boleh tanpa https://, akan ditambahkan otomatis saat disimpan"
-          >
-            <Input
+            <LinkField
               id="ep-website"
-              inputMode="url"
-              value={socials.website}
-              onChange={setSocial('website')}
-              placeholder="contoh.com"
-              autoComplete="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              aria-invalid={Boolean(website.error)}
+              label="Link Bebas"
+              show={display.website}
+              onShow={setShow('website')}
+              canShow={socials.website.trim() !== ''}
+              error={website.error}
+              hint="Boleh tanpa https://, akan ditambahkan otomatis saat disimpan"
+            >
+              <Input
+                id="ep-website"
+                inputMode="url"
+                value={socials.website}
+                onChange={setSocial('website')}
+                placeholder="contoh.com"
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                aria-invalid={Boolean(website.error)}
+              />
+            </LinkField>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Tampilan Profil"
+            summary={displaySummary}
+            open={displayOpen}
+            onToggle={() => setDisplayOpen((v) => !v)}
+          >
+            <ToggleRow
+              title="Bergabung sejak"
+              description="Bulan dan tahun kamu mendaftar"
+              checked={display.joinedSince}
+              onChange={setShow('joinedSince')}
             />
-          </LinkField>
+            <ToggleRow
+              title="Statistik tambahan"
+              description="Total pendakian dan hari di gunung"
+              checked={display.extraStats}
+              onChange={setShow('extraStats')}
+            />
 
-          <SectionTitle>Tampilan Profil</SectionTitle>
-          <ToggleRow
-            title="Bergabung sejak"
-            description="Bulan dan tahun kamu mendaftar"
-            checked={display.joinedSince}
-            onChange={setShow('joinedSince')}
-          />
-          <ToggleRow
-            title="Statistik tambahan"
-            description="Total pendakian dan hari di gunung"
-            checked={display.extraStats}
-            onChange={setShow('extraStats')}
-          />
-
-          <div className="border-t border-line pt-3">
-            <p className="text-[12.5px] font-semibold">Lencana</p>
-            <p className="mb-2.5 mt-px text-[11px] text-mute">
-              Dihitung otomatis dari pendakian terverifikasi. Pilih yang ingin ditampilkan.
-            </p>
-
-            {earned === null && <p className="text-[11px] text-mute">Memuat lencana...</p>}
-            {earned?.length === 0 && (
-              <p className="text-[11px] leading-normal text-mute">
-                Belum ada lencana. Selesaikan pendakian terverifikasi untuk mendapatkannya.
-              </p>
-            )}
-            {earned?.map((b) => (
-              <div
-                key={b.id}
-                className="flex items-center gap-3 border-t border-line py-2.5 first:border-t-0 first:pt-0"
-              >
-                <BadgeMedal icon={b.icon} tier={b.tier} image={b.image} size={40} showLabel={false} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-semibold">{b.name}</p>
+            <div className="border-t border-line pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[12.5px] font-semibold">Lencana</p>
                   <p className="mt-px text-[11px] text-mute">
-                    {b.tierName ? `Tingkat ${b.tierName}` : 'Satu tingkat'}
+                    Dihitung otomatis dari pendakian terverifikasi. Tampil maksimal {MAX_DISPLAYED_BADGES} di profil.
                   </p>
                 </div>
-                <Toggle
-                  checked={!display.hiddenBadges.includes(b.id)}
-                  onChange={toggleBadge(b.id)}
-                  label={`Tampilkan lencana ${b.name}`}
-                />
+                <button
+                  type="button"
+                  onClick={() => setPicking(true)}
+                  disabled={!earned}
+                  className="shrink-0 rounded-full border border-line bg-paper px-3.5 py-1.5 text-[11.5px] font-semibold disabled:opacity-50"
+                >
+                  Pilih
+                </button>
               </div>
-            ))}
-          </div>
+
+              {earned === null && <p className="mt-2.5 text-[11px] text-mute">Memuat lencana...</p>}
+              {earned?.length === 0 && (
+                <p className="mt-2.5 text-[11px] leading-normal text-mute">
+                  Belum ada lencana. Selesaikan pendakian terverifikasi untuk mendapatkannya.
+                </p>
+              )}
+              {earned?.length > 0 &&
+                (shownBadges.length > 0 ? (
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {shownBadges.map((b) => (
+                      <li key={b.id} title={b.name}>
+                        <BadgeMedal image={b.image} size={40} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2.5 text-[11px] text-mute">Tidak ada lencana yang ditampilkan.</p>
+                ))}
+            </div>
+          </CollapsibleSection>
 
           {submitError && <p className="mt-3 text-xs font-semibold text-warn">{submitError}</p>}
         </form>
       </BottomSheet>
+
+      {picking && earned && (
+        <BadgePickerSheet
+          earned={earned}
+          selectedIds={shownIds}
+          max={MAX_DISPLAYED_BADGES}
+          onToggle={toggleBadge}
+          onClose={() => setPicking(false)}
+        />
+      )}
 
       {confirming && (
         <ConfirmDialog
