@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
 import UserLayout from './components/layout/UserLayout'
-import TopBar from './components/layout/TopBar'
 import AuthPage from './pages/auth/AuthPage'
 import Home from './pages/user/Home'
 import SearchPage from './pages/user/Search'
@@ -16,17 +15,7 @@ import PublicProfile from './pages/user/PublicProfile'
 import PublicEntry from './pages/user/PublicEntry'
 import MapPage from './pages/user/MapPage'
 import SavedMaps from './pages/user/SavedMaps'
-
-function Placeholder({ title }) {
-  return (
-    <>
-      <TopBar title={title} />
-      <div className="px-5 md:px-0">
-        <h1 className="hidden pt-8 font-heading text-2xl font-bold md:block">{title}</h1>
-      </div>
-    </>
-  )
-}
+import Dashboard from './pages/user/Dashboard'
 
 export default function App() {
   return (
@@ -47,7 +36,7 @@ export default function App() {
         <Route path="/u/:username" element={<PublicProfile />} />
         <Route path="/e/:slug" element={<PublicEntry />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/dashboard" element={<Placeholder title="Dashboard Saya" />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/settings/public-logbook" element={<PublicLogbookSettings />} />
         <Route path="/settings/:section" element={<Settings />} />
