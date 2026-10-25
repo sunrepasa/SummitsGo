@@ -17,6 +17,7 @@ import MapPage from './pages/user/MapPage'
 import SavedMaps from './pages/user/SavedMaps'
 import Dashboard from './pages/user/Dashboard'
 import JoinChecklist from './pages/user/JoinChecklist'
+import Notifications from './pages/user/Notifications'
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/settings/public-logbook" element={<PublicLogbookSettings />} />
         <Route path="/settings/:section" element={<Settings />} />
         <Route path="/saved-maps" element={<SavedMaps />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
     </Routes>
   )

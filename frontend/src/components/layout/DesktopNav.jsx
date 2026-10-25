@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Bell,
   ChevronDown,
   LayoutDashboard,
   Map as MapIcon,
@@ -9,6 +8,7 @@ import {
   Settings,
   User,
 } from 'lucide-react'
+import NotificationBell from '../notifications/NotificationBell'
 import { useAuth } from '../../context/AuthContext'
 import { useDismiss } from '../../hooks/useDismiss'
 import Avatar from '../ui/Avatar'
@@ -166,9 +166,7 @@ export default function DesktopNav() {
           <Link to="/saved-maps" className={iconBtn} aria-label="Peta Tersimpan" title="Peta Tersimpan">
             <MapIcon size={17} />
           </Link>
-          <button type="button" className={iconBtn} aria-label="Notifikasi">
-            <Bell size={17} />
-          </button>
+          <NotificationBell className={iconBtn} />
           {isLoggedIn ? <UserMenu user={user} /> : <GuestActions />}
         </div>
       </div>

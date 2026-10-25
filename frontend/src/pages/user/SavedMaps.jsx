@@ -98,7 +98,7 @@ export default function SavedMaps() {
             </Link>
           </div>
         ) : (
-          <ul className="space-y-2.5 md:space-y-3">
+          <ul className="grid gap-2.5 md:grid-cols-2 md:gap-3">
             {maps.map((m) => (
               <SavedMapRow key={m.id} map={m} onDelete={setToDelete} />
             ))}

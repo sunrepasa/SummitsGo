@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { Bell, ChevronRight, Map as MapIcon } from 'lucide-react'
+import { ChevronRight, Map as MapIcon } from 'lucide-react'
 import TopBar from '../../components/layout/TopBar'
 import HeroCarousel, { HeroSkeleton } from '../../components/home/HeroCarousel'
 import MountainSection from '../../components/mountain/MountainSection'
+import NotificationBell from '../../components/notifications/NotificationBell'
 import Logo from '../../components/ui/Logo'
 import { getHeroSlides, getMountains, getRecommendedMountains } from '../../api/mountain'
 import { useAsync } from '../../hooks/useAsync'
@@ -24,9 +25,7 @@ export default function Home() {
             <Link to="/saved-maps" className={mobileIcon} aria-label="Peta Tersimpan">
               <MapIcon size={16} />
             </Link>
-            <button type="button" className={mobileIcon} aria-label="Notifikasi">
-              <Bell size={16} />
-            </button>
+            <NotificationBell className={mobileIcon} size={16} />
           </div>
         }
       >

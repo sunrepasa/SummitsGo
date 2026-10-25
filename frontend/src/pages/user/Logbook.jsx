@@ -16,7 +16,7 @@ import {
 import { useAsync } from '../../hooks/useAsync'
 import { getLogbookStats } from '../../utils/logbookStats'
 
-const listStack = 'space-y-2.5 md:space-y-3'
+const listStack = 'grid gap-2.5 md:gap-3 lg:grid-cols-2'
 const GUEST_STATS = { climbed: 0, highest: 0 }
 const LOGIN_STATE = { from: '/logbook' }
 

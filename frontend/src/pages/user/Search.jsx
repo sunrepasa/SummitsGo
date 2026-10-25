@@ -34,7 +34,7 @@ export default function SearchPage() {
     )
   } else if (!list) {
     body = (
-      <ul className="divide-y divide-dashed divide-line md:space-y-3.5 md:divide-y-0">
+      <ul className="divide-y divide-dashed divide-line md:grid md:gap-3.5 md:divide-y-0 xl:grid-cols-2">
         {Array.from({ length: 5 }, (_, i) => (
           <li key={i}>
             <MountainRowSkeleton />
@@ -55,7 +55,7 @@ export default function SearchPage() {
     )
   } else {
     body = (
-      <ul className="divide-y divide-dashed divide-line md:space-y-3.5 md:divide-y-0">
+      <ul className="divide-y divide-dashed divide-line md:grid md:gap-3.5 md:divide-y-0 xl:grid-cols-2">
         {list.map((m) => (
           <li key={m.id}>
             <MountainRow mountain={m} saved={savedIds.includes(m.id)} />
