@@ -23,6 +23,12 @@ const IMAGES = {
   'beginner-1': '/badges/beginner-1.webp',
   'beginner-2': '/badges/beginner-2.webp',
   'beginner-3': '/badges/beginner-3.webp',
+  'wanderer-1': '/badges/wanderer-1.webp',
+  'wanderer-2': '/badges/wanderer-2.webp',
+  'wanderer-3': '/badges/wanderer-3.webp',
+  'veteran-1': '/badges/veteran-1.webp',
+  'veteran-2': '/badges/veteran-2.webp',
+  'veteran-3': '/badges/veteran-3.webp',
 }
 
 const describeCategory = (range) => (min) =>
