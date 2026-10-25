@@ -16,6 +16,7 @@ import PublicEntry from './pages/user/PublicEntry'
 import MapPage from './pages/user/MapPage'
 import SavedMaps from './pages/user/SavedMaps'
 import Dashboard from './pages/user/Dashboard'
+import JoinChecklist from './pages/user/JoinChecklist'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/checklist" element={<Checklist />} />
         <Route path="/checklist/:id" element={<ChecklistDetail />} />
+        <Route path="/join/:code" element={<JoinChecklist />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/mountain/:id" element={<MountainDetail />} />
         <Route path="/logbook" element={<Logbook />} />

@@ -329,3 +329,53 @@ export async function declineInvitation(invitationId) {
   }
   await client.post(`/invitations/${invitationId}/decline`)
 }
+
+// ---- Undangan lewat tautan /join/:code ----
+
+// Cari checklist berdasarkan kode: yang sudah kamu ikuti, atau yang masih berupa undangan masuk (data demo gde9a1)
+function findByInviteCode(code) {
+  const own = checklists.find((c) => c.inviteCode === code)
+  if (own) return { record: own, incoming: null }
+  const incoming = incomingInvitations.find((i) => i.checklist.inviteCode === code)
+  return incoming ? { record: incoming.checklist, incoming } : { record: null, incoming: null }
+}
+
+// Info undangan untuk halaman /join/:code. Terbuka untuk guest (tanpa token); `joined` hanya benar bila yang melihat sudah anggota.
+export async function getInviteByCode(code) {
+  if (USE_MOCK) {
+    const { record } = findByInviteCode(code)
+    if (!record) throw codedError('Undangan tidak valid', 'NOT_FOUND', 404)
+    return wait(
+      {
+        code,
+        invitedBy: record.members.find((m) => m.role === 'leader')?.name ?? 'Ketua',
+        mountain: mountains.find((m) => m.id === record.mountainId),
+        route: record.route,
+        plannedDate: record.plannedDate,
+        members: record.members.map((m) => m.name),
+        joined: Boolean(roleOf(record)),
+        checklistId: roleOf(record) ? record.id : null,
+      },
+      300,
+    )
+  }
+  const { data } = await client.get(`/invites/${code}`)
+  return data
+}
+
+// Gabung lewat kode (wajib login). Mengembalikan id checklist.
+export async function joinByInviteCode(code) {
+  if (USE_MOCK) {
+    const { record, incoming } = findByInviteCode(code)
+    if (!record) throw codedError('Undangan tidak valid', 'NOT_FOUND', 404)
+    if (roleOf(record)) return wait(record.id, 200)
+    if (incoming) {
+      incomingInvitations.splice(incomingInvitations.indexOf(incoming), 1)
+      checklists.unshift(record)
+    }
+    record.members.push({ id: ME_ID, name: 'Sayz', role: 'member' })
+    return wait(record.id, 400)
+  }
+  const { data } = await client.post(`/invites/${code}/join`)
+  return data.checklistId
+}
