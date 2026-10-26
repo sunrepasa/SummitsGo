@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-pine: #1F3A2E;
+  --color-pine-deep: #142822;
+  --color-leaf: #7FB069;
+  --color-leaf-deep: #4E7A3B;
+  --color-stone: #F3F5F0;
+  --color-paper: #FFFFFF;
+  --color-ink: #1A1F1C;
+  --color-mute: #66756B;
+  --color-line: #DCE4D8;
+  --color-warn: #C4632B;
+  --color-ok: #3F7A45;
+  --color-warnbg: #FBEADD;
+
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--color-stone);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.page-container {
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .page-container { padding-inline: 2rem; }
+}
+
+@media (min-width: 1280px) {
+  .page-container { padding-inline: 3rem; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- peta (Leaflet): marker dibuat sebagai HTML lewat divIcon, jadi gayanya ditulis di sini --- */
+.sg-marker { background: none; border: 0; }
+.sg-pin {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--color-pine);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+.sg-pin.basecamp { background: var(--color-leaf-deep); }
+.sg-pin.summit { width: 16px; height: 16px; margin: -8px 0 0 -8px; background: var(--color-warn); }
+.sg-label {
+  position: absolute;
+  left: 11px;
+  top: -10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--color-pine-deep);
+  font: 600 10px/1.5 var(--font-body);
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+}
+.sg-fac { display: inline-flex; color: var(--color-leaf-deep); }
+.sg-fac.warn { color: var(--color-warn); }
+.sg-me {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: #2E6FE0;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgba(46, 111, 224, .25);
+}
+.leaflet-container { font-family: var(--font-body); }
+.leaflet-popup-content { margin: 10px 12px; font-size: 12px; line-height: 1.5; }
+.leaflet-bottom.leaflet-right .leaflet-control-zoom { margin: 0 16px 24px 0; }
+@media (max-width: 767px) {
+  .leaflet-control-zoom { display: none; }
+}
