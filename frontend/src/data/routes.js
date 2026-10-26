@@ -1,0 +1,15 @@
+export const routesByMountain = {
+  rinjani: ['Sembalun', 'Torean'],
+  semeru: ['Ranu Pani'],
+  prau: ['Patak Banteng', 'Dieng', 'Wates'],
+  merbabu: ['Selo', 'Wekas', 'Suwanting', 'Thekelan'],
+  andong: ['Sawit', 'Pendem', 'Gedong'],
+  bromo: ['Cemoro Lawang', 'Wonokitri'],
+  ijen: ['Paltuding'],
+  papandayan: ['Cisurupan'],
+  lawu: ['Cemoro Sewu', 'Cemoro Kandang', 'Candi Cetho'],
+  gede: ['Cibodas', 'Gunung Putri', 'Salabintana'],
+  sindoro: ['Kledung', 'Alang-Alang Sewu', 'Sigedang'],
+  telomoyo: ['Kopeng'],
+  nglanggeran: ['Jalur Utama'],
+}
