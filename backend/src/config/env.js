@@ -19,6 +19,8 @@ export const env = {
   mongodbUri: process.env.MONGODB_URI,
   dbName: process.env.DB_NAME || 'summitsgo',
   jwtSecret: process.env.JWT_SECRET,
+  // hanya dipakai skrip seed untuk akun admin; kosong = akun admin tidak dibuat
+  adminPassword: (process.env.ADMIN_PASSWORD ?? '').length >= 12 ? process.env.ADMIN_PASSWORD : '',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '30d',
   dnsServers: (process.env.DNS_SERVERS || '')
     .split(',')

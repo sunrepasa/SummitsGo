@@ -44,3 +44,18 @@ export const loginSchema = z.strictObject({
 })
 
 export const usernameQuerySchema = z.strictObject({ username: usernameSchema })
+
+// ---- gunung ----
+const toArray = (value) => (value === undefined || value === '' ? [] : Array.isArray(value) ? value : [value])
+const blankToUndefined = (value) => (value === '' ? undefined : value)
+
+export const mountainListQuerySchema = z.object({
+  sort: z.enum(['popular', 'newest', 'name', 'nearest'], 'Urutan tidak valid').default('popular'),
+  limit: z.preprocess(blankToUndefined, z.coerce.number('limit harus angka').int().min(1).max(100).optional()),
+  q: z.string().trim().max(100, 'Kata kunci terlalu panjang').optional(),
+  location: z.string().trim().max(100).optional(),
+  difficulty: z.preprocess(toArray, z.array(z.enum(['beginner', 'medium', 'hard'], 'Tingkat kesulitan tidak valid'))),
+  status: z.preprocess(toArray, z.array(z.enum(['open', 'quota_full', 'closed'], 'Status tidak valid'))),
+  minElevation: z.preprocess(blankToUndefined, z.coerce.number('minElevation harus angka').min(0).optional()),
+  maxElevation: z.preprocess(blankToUndefined, z.coerce.number('maxElevation harus angka').min(0).optional()),
+})
