@@ -38,7 +38,8 @@ const SORTS = {
   nearest: { popularity: -1, name: 1, _id: 1 },
 }
 
-async function findMountain(slug) {
+// dipakai ulang oleh controller lain (ulasan, checklist, logbook) yang menerima slug gunung di path
+export async function findMountain(slug) {
   const mountain = await Mountain.findOne({ slug: String(slug).toLowerCase() }).lean()
   if (!mountain) throw notFound()
   return mountain

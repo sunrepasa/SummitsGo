@@ -3,9 +3,12 @@ import mongoose from 'mongoose'
 import { connectDB } from '../config/db.js'
 import { env } from '../config/env.js'
 import Mountain from '../models/Mountain.js'
+import Review from '../models/Review.js'
 import Route from '../models/Route.js'
 import User from '../models/User.js'
+import { recalcMountainRating } from '../utils/mountainRating.js'
 import { mountains } from './data/mountains.js'
+import { demoReviews } from './data/reviews.js'
 
 // Aman dijalankan berulang: semua langkah memakai upsert. Data yang sudah diubah lewat aplikasi
 // (password, rating, popularitas) tidak ditimpa.
@@ -42,11 +45,28 @@ async function seedMountains() {
   console.log(`Gunung: ${mountains.length}, jalur: ${mountains.reduce((n, m) => n + m.routes.length, 0)}`)
 }
 
+async function seedReviews() {
+  const author = await User.findOne({ username: 'sayz' }).select('_id').lean()
+
+  for (const { mountainSlug, ...review } of demoReviews) {
+    const mountain = await Mountain.findOne({ slug: mountainSlug }).select('_id').lean()
+    if (!mountain) continue
+    // kunci upsert = penulis + gunung + teks, jadi seed ulang tidak membuat ulasan ganda
+    const key = { user_id: author._id, mountain_id: mountain._id, text: review.text }
+    await Review.updateOne(key, { $set: { ...review, status: 'approved', verified: false } }, { upsert: true })
+  }
+
+  // rating di kartu gunung dihitung ulang dari ulasan approved, termasuk gunung tanpa ulasan (jadi 0)
+  for (const { _id } of await Mountain.find().select('_id').lean()) await recalcMountainRating(_id)
+  console.log(`Ulasan demo: ${demoReviews.length}`)
+}
+
 try {
   await connectDB()
   await seedUsers()
   await seedMountains()
-  // Fase berikutnya menambah langkah di sini (template checklist, review, data demo)
+  await seedReviews()
+  // Fase berikutnya menambah langkah di sini (template checklist, data demo logbook/checklist)
   console.log('Seed selesai')
 } catch (err) {
   console.error('Seed gagal:', err.message)

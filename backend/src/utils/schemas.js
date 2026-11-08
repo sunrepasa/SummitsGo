@@ -59,3 +59,24 @@ export const mountainListQuerySchema = z.object({
   minElevation: z.preprocess(blankToUndefined, z.coerce.number('minElevation harus angka').min(0).optional()),
   maxElevation: z.preprocess(blankToUndefined, z.coerce.number('maxElevation harus angka').min(0).optional()),
 })
+
+// ---- umum ----
+export const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'ID tidak valid')
+
+// ---- ulasan ----
+// id tag sama dengan REVIEW_TAGS di frontend (utils/reviewTags.js)
+export const REVIEW_TAGS = ['crowded', 'slippery', 'scenic', 'dry-water', 'beginner-friendly']
+
+// batas panjang teks sama dengan ReviewModal di frontend (10-500 karakter)
+export const reviewCreateSchema = z.strictObject({
+  rating: z.number('Pilih jumlah bintang').int('Rating harus bilangan bulat').min(1, 'Rating minimal 1').max(5, 'Rating maksimal 5'),
+  text: z.string('Cerita wajib diisi').trim().min(10, 'Tulis minimal 10 karakter').max(500, 'Cerita maksimal 500 karakter'),
+  tags: z
+    .array(z.enum(REVIEW_TAGS, 'Tag tidak dikenal'), 'Tag harus berupa daftar')
+    .max(REVIEW_TAGS.length, 'Terlalu banyak tag')
+    .default([])
+    .transform((tags) => [...new Set(tags)]),
+  // frontend mengirim null bila ulasan tidak ditulis dari logbook
+  route: z.string('Jalur tidak valid').trim().max(100, 'Nama jalur terlalu panjang').nullish().transform((v) => v || null),
+  logbookId: objectIdSchema.nullish().transform((v) => v ?? null),
+})
