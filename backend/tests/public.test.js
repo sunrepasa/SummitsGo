@@ -133,3 +133,27 @@ describe('hapus akun membersihkan jejak di logbook orang lain', () => {
     expect(stored.crew.map(String)).not.toContain(String(rani.user._id))
   })
 })
+
+describe('slug yang diminta benar-benar dipakai (regresi: slug pernah tertimpa filter)', () => {
+  test('slug tidak ada → 404 walau ada entri publik lain', async () => {
+    await setup()
+    const res = await request(app).get('/api/v1/public/entries/tidak-ada')
+    expect([res.status, res.body.message]).toEqual([404, 'Entri tidak tersedia'])
+  })
+
+  test('dua entri publik: tiap slug mengembalikan entrinya sendiri', async () => {
+    const { batur, sayz } = await setup()
+    await createLogbook(sayz.user, batur, { startDate: '2026-01-05', route: 'Toya Bungkah', isPublic: true, slug: 'batur-toya-bungkah-zzz999' })
+    const first = await request(app).get('/api/v1/public/entries/batur-pura-jati-abc123')
+    const second = await request(app).get('/api/v1/public/entries/batur-toya-bungkah-zzz999')
+    expect([first.body.slug, first.body.route]).toEqual(['batur-pura-jati-abc123', 'Pura Jati'])
+    expect([second.body.slug, second.body.route]).toEqual(['batur-toya-bungkah-zzz999', 'Toya Bungkah'])
+  })
+
+  test('menyukai slug yang tidak ada → 404 dan tidak menyukai entri lain', async () => {
+    const { entry, dimas } = await setup()
+    const res = await request(app).put('/api/v1/public/entries/tidak-ada/like').set('Authorization', `Bearer ${dimas.token}`)
+    expect(res.status).toBe(404)
+    expect((await Logbook.findById(entry._id).lean()).likes).toBe(1)
+  })
+})

@@ -8,6 +8,10 @@ import { likeState, mountainMap, toPublicCard } from '../utils/logbookView.js'
 // entri yang boleh dilihat publik: dipublikkan, bukan draf, dan sudah punya slug
 const PUBLIC_ENTRY = { isPublic: true, isDraft: false, slug: { $type: 'string' } }
 
+// Slug yang diminta HARUS ditulis setelah PUBLIC_ENTRY. Bila ditulis sebelumnya, kunci slug milik
+// PUBLIC_ENTRY menimpanya dan pencarian berubah menjadi "entri publik mana saja" (bug yang pernah terjadi).
+const publicEntryBySlug = (slug) => ({ ...PUBLIC_ENTRY, slug: String(slug) })
+
 const entryNotFound = () => new AppError('Entri tidak tersedia', 'NOT_FOUND', 404)
 
 // Hanya isian yang pemiliknya pilih untuk ditampilkan yang dikirim. Isian yang disembunyikan
@@ -51,7 +55,7 @@ export async function getPublicProfile(req, res) {
 // GET /public/entries/:slug — tamu boleh. Status publik entri berdiri sendiri dari profil publik:
 // entri publik tetap bisa dibuka walau profil pemiliknya privat (FR-013).
 export async function getPublicEntry(req, res) {
-  const doc = await Logbook.findOne({ slug: String(req.params.slug), ...PUBLIC_ENTRY }).lean()
+  const doc = await Logbook.findOne(publicEntryBySlug(req.params.slug)).lean()
   if (!doc) throw entryNotFound()
 
   const [owner, mountains, members] = await Promise.all([
@@ -89,7 +93,7 @@ export async function getPublicEntry(req, res) {
 
 // PUT/DELETE /public/entries/:slug/like — wajib login
 export async function likePublicEntry(req, res) {
-  const doc = await Logbook.findOne({ slug: String(req.params.slug), ...PUBLIC_ENTRY }).select('_id user_id').lean()
+  const doc = await Logbook.findOne(publicEntryBySlug(req.params.slug)).select('_id user_id').lean()
   if (!doc) throw entryNotFound()
 
   await setLike(doc._id, req.user.id, req.method === 'PUT')
