@@ -2,6 +2,7 @@ import Logbook from '../models/Logbook.js'
 import User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
 import { checkPassword, hashPassword } from '../utils/password.js'
+import { deletePhotoFiles } from '../utils/photos.js'
 import { RESERVED_USERNAMES } from '../utils/schemas.js'
 import { toSessionUser } from '../utils/serializer.js'
 import { findMountain } from './mountain.controller.js'
@@ -75,10 +76,21 @@ export async function changePassword(req, res) {
 export async function deleteMe(req, res) {
   const userId = req.user.id
 
-  await Logbook.deleteMany({ user_id: userId })
-  // Fase 5-7 menambah langkah di sini: hapus suka pengguna di logbook orang lain, checklist yang ia
-  // pimpin beserta undangannya, keanggotaan dan klaim barang di checklist lain, serta notifikasinya.
+  // akun dihapus lebih dulu: bila langkah bersih-bersih di bawah gagal di tengah jalan, pengguna
+  // tetap tidak bisa masuk lagi, dan sisa data (yang tidak lagi tertaut ke akun) tidak tampil di mana pun
   await User.deleteOne({ _id: userId })
+
+  const own = await Logbook.find({ user_id: userId }).select('photos').lean()
+  await Logbook.deleteMany({ user_id: userId })
+  await deletePhotoFiles(own.flatMap((e) => (e.photos ?? []).map((p) => p.url)))
+
+  // suka yang pernah ia berikan di entri orang lain ditarik, supaya angka likes tetap sama dengan likedBy
+  await Logbook.updateMany({ likedBy: userId }, { $pull: { likedBy: userId }, $inc: { likes: -1 } })
+  // keluar dari daftar rombongan entri orang lain
+  await Logbook.updateMany({ crew: userId }, { $pull: { crew: userId } })
+
+  // Fase 6-7 menambah langkah di sini: checklist yang ia pimpin beserta undangannya,
+  // keanggotaan dan klaim barang di checklist lain, serta notifikasinya.
 
   // token lama otomatis tidak berlaku: middleware auth menolak akun yang sudah tidak ada
   res.json({ message: 'Akun berhasil dihapus' })

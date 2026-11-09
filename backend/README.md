@@ -33,6 +33,8 @@ Cek server hidup: buka `http://localhost:3000/api/v1/health`, harus muncul `"dat
 | `JWT_SECRET` | ya | (acak, minimal 32 karakter) | Buat dengan `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
 | `JWT_EXPIRES_IN` | tidak | `30d` | Masa berlaku token; panjang agar pendaki tetap masuk saat offline |
 | `CORS_ORIGIN` | tidak | `http://localhost:5173` | Alamat frontend yang diizinkan, pisahkan dengan koma |
+| `PUBLIC_URL` | tidak | `http://localhost:3000` | Alamat backend yang dibuka browser; dipakai menyusun URL foto. Ganti saat deploy |
+| `UPLOAD_DIR` | tidak | `uploads` | Folder foto unggahan, relatif terhadap folder `backend` |
 | `ADMIN_PASSWORD` | tidak | (minimal 12 karakter) | Sandi akun admin saat seed; kosong = akun admin tidak dibuat |
 
 `.env` tidak boleh masuk Git (sudah ada di `.gitignore`).
@@ -43,7 +45,7 @@ Cek server hidup: buka `http://localhost:3000/api/v1/health`, harus muncul `"dat
 | --- | --- |
 | `npm run dev` | Server pengembangan (nodemon) |
 | `npm start` | Server tanpa restart otomatis |
-| `npm run seed` | Isi data awal: 5 gunung Bali, 8 jalur, 2 ulasan demo, akun `sayz` dan admin |
+| `npm run seed` | Isi data awal: 5 gunung Bali, 8 jalur, akun `sayz` dan admin, serta data demo `sayz` (3 logbook termasuk 1 draf, 2 ulasan) |
 | `npm test` | Uji otomatis (Jest + Supertest) |
 
 ### Akun hasil seed
@@ -107,7 +109,18 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 | GET | `/promotions` | tidak | jadi |
 | GET | `/mountains/:id/reviews` | tidak | jadi |
 | POST | `/mountains/:id/reviews` | ya | jadi |
-| Logbook (12), profil dan entri publik (4) | | | Fase 5 |
+| GET | `/logbooks/me` | ya | jadi |
+| GET | `/logbooks/drafts` | ya | jadi |
+| POST | `/logbooks/drafts/:id/confirm` | ya | jadi |
+| DELETE | `/logbooks/drafts/:id` | ya | jadi |
+| POST | `/logbooks` (multipart, field foto `photo`) | ya | jadi |
+| GET / PUT / DELETE | `/logbooks/:id` | ya | jadi |
+| POST | `/logbooks/:id/photos` (multipart, field `photo`) | ya | jadi |
+| PATCH | `/logbooks/:id/visibility` | ya | jadi |
+| POST / DELETE | `/logbooks/:id/like` | ya | jadi |
+| GET | `/public/users/:username` | tidak (opsional) | jadi |
+| GET | `/public/entries/:slug` | tidak (opsional) | jadi |
+| PUT / DELETE | `/public/entries/:slug/like` | ya | jadi |
 | Checklist dan undangan (20) | | | Fase 6 |
 | Notifikasi (7) | | | Fase 7 |
 | Admin (8) | | admin | Fase 8 |
@@ -124,6 +137,7 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 | `USERNAME_TAKEN`, `EMAIL_TAKEN` | 409 | Sudah dipakai akun lain |
 | `USERNAME_COOLDOWN` | 409 | Ganti username sebelum 7 hari |
 | `ALREADY_REVIEWED` | 409 | Sudah menulis ulasan (pending/disetujui) untuk gunung itu |
+| `PHOTO_LIMIT` | 409 | Foto logbook sudah 10 |
 | `RATE_LIMITED` | 429 | Terlalu banyak percobaan login, daftar, atau ganti sandi |
 | `INTERNAL_ERROR` | 500 | Kesalahan di server |
 

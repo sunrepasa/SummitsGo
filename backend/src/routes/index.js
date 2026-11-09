@@ -5,12 +5,14 @@ import userRoutes from './user.routes.js'
 import mountainRoutes from './mountain.routes.js'
 import publicRoutes from './public.routes.js'
 import promotionRoutes from './promotion.routes.js'
+import logbookRoutes from './logbook.routes.js'
 
 const router = Router()
 
 router.use('/auth', authRoutes)
 router.use('/users', userRoutes)
 router.use('/mountains', mountainRoutes)
+router.use('/logbooks', logbookRoutes)
 router.use('/public', publicRoutes)
 router.use('/promotions', promotionRoutes)
 

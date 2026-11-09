@@ -3,7 +3,7 @@ import app from '../src/app.js'
 import Logbook from '../src/models/Logbook.js'
 import Review from '../src/models/Review.js'
 import User from '../src/models/User.js'
-import { createMountain, createUser } from './helpers/factory.js'
+import { createLogbook, createMountain, createUser } from './helpers/factory.js'
 import { clearDb, startDb, stopDb } from './helpers/testDb.js'
 
 beforeAll(startDb)
@@ -139,7 +139,7 @@ describe('DELETE /users/me', () => {
   test('akun dan logbook terhapus, ulasan tetap dengan penulis anonim, token tidak berlaku', async () => {
     const mountain = await createMountain()
     const { user, token } = await createUser()
-    await Logbook.create({ user_id: user._id, mountain_id: mountain._id, route: 'Pura Jati' })
+    await createLogbook(user, mountain)
     await Review.create({ user_id: user._id, mountain_id: mountain._id, rating: 5, text: 'Teks ulasan cukup panjang', status: 'approved' })
 
     const res = await request(app).delete('/api/v1/users/me').set('Authorization', `Bearer ${token}`)

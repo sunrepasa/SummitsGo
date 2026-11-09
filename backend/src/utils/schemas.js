@@ -145,3 +145,26 @@ export const reviewCreateSchema = z.strictObject({
   route: z.string('Jalur tidak valid').trim().max(100, 'Nama jalur terlalu panjang').nullish().transform((v) => v || null),
   logbookId: objectIdSchema.nullish().transform((v) => v ?? null),
 })
+
+// ---- logbook ----
+// Body POST /logbooks datang dari multipart/form-data, jadi semua nilainya berupa teks.
+// Batas sama dengan AddLogbookModal di frontend: lama 1-30 hari, catatan maksimal 1000 karakter.
+const noteSchema = z.string('Catatan harus berupa teks').trim().max(1000, 'Catatan maksimal 1000 karakter')
+
+export const logbookCreateSchema = z.strictObject({
+  mountainId: z.string('Pilih gunung').trim().toLowerCase().min(1, 'Pilih gunung').max(60),
+  route: z.string('Pilih jalur').trim().min(1, 'Pilih jalur').max(100, 'Nama jalur terlalu panjang'),
+  // diperiksa lebih lanjut di controller (tanggal sungguhan, tidak di masa depan)
+  startDate: z.string('Tanggal wajib diisi').regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD'),
+  days: z.preprocess(
+    blankToUndefined,
+    z.coerce.number('Lama pendakian harus angka').int('Isi 1 sampai 30 hari').min(1, 'Isi 1 sampai 30 hari').max(30, 'Isi 1 sampai 30 hari').optional(),
+  ),
+  note: noteSchema.optional().default(''),
+})
+
+export const logbookNoteSchema = z.strictObject({ note: noteSchema })
+
+export const logbookVisibilitySchema = z.strictObject({
+  isPublic: z.boolean('isPublic wajib diisi true/false'),
+})

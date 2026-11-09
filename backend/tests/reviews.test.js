@@ -1,10 +1,9 @@
 import request from 'supertest'
 import app from '../src/app.js'
-import Logbook from '../src/models/Logbook.js'
 import Mountain from '../src/models/Mountain.js'
 import Review from '../src/models/Review.js'
 import { recalcMountainRating } from '../src/utils/mountainRating.js'
-import { createMountain, createRoute, createUser } from './helpers/factory.js'
+import { createLogbook, createMountain, createRoute, createUser } from './helpers/factory.js'
 import { clearDb, startDb, stopDb } from './helpers/testDb.js'
 
 beforeAll(startDb)
@@ -63,8 +62,8 @@ describe('POST /mountains/:id/reviews', () => {
 
   test('verified dihitung server dari logbook terverifikasi (bukan draf)', async () => {
     const { batur, sayz, rani } = await setup()
-    await Logbook.create({ user_id: rani.user._id, mountain_id: batur._id, route: 'Pura Jati', verified: true })
-    await Logbook.create({ user_id: sayz.user._id, mountain_id: batur._id, route: 'Pura Jati', verified: true, isDraft: true })
+    await createLogbook(rani.user, batur, { verified: true })
+    await createLogbook(sayz.user, batur, { verified: true, isDraft: true })
 
     const raniRes = await request(app).post(url).set('Authorization', `Bearer ${rani.token}`).send(body)
     const sayzRes = await request(app).post(url).set('Authorization', `Bearer ${sayz.token}`).send(body)
@@ -99,7 +98,7 @@ describe('POST /mountains/:id/reviews', () => {
 
   test('memakai logbook milik orang lain → 400', async () => {
     const { batur, sayz, rani } = await setup()
-    const raniLog = await Logbook.create({ user_id: rani.user._id, mountain_id: batur._id, route: 'Pura Jati', verified: true })
+    const raniLog = await createLogbook(rani.user, batur, { verified: true })
     const res = await request(app)
       .post(url)
       .set('Authorization', `Bearer ${sayz.token}`)

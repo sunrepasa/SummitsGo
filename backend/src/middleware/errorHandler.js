@@ -1,4 +1,5 @@
 import { AppError } from '../utils/AppError.js'
+import { MULTER_MESSAGES } from './upload.js'
 
 export function notFoundHandler(req, res, next) {
   next(new AppError('Endpoint tidak ditemukan', 'NOT_FOUND', 404))
@@ -19,6 +20,16 @@ export function errorHandler(err, req, res, next) {
 
   if (err.type === 'entity.too.large') {
     return res.status(413).json({ message: 'Data yang dikirim terlalu besar', code: 'VALIDATION_ERROR' })
+  }
+
+  // kesalahan saat membaca unggahan multipart (foto terlalu besar, field salah, dll.)
+  if (err.name === 'MulterError') {
+    return res.status(400).json({ message: MULTER_MESSAGES[err.code] ?? 'Unggahan tidak valid', code: 'VALIDATION_ERROR' })
+  }
+
+  // body multipart terpotong atau rusak (dilempar pembaca multipart, bukan MulterError)
+  if (err.message === 'Unexpected end of form' || err.message === 'Multipart: Boundary not found') {
+    return res.status(400).json({ message: 'Unggahan tidak lengkap atau rusak', code: 'VALIDATION_ERROR' })
   }
 
   if (err.name === 'ValidationError') {

@@ -5,13 +5,14 @@ import { toDateOnly } from '../utils/date.js'
 import { nearestIndex } from '../utils/geo.js'
 import { serialize } from '../utils/serializer.js'
 
-const LIST_FIELDS = 'slug name location province elevation difficulty status rating reviewCount popularity cover createdAt'
+export const LIST_FIELDS = 'slug name location province elevation difficulty status rating reviewCount popularity cover createdAt'
 const COLLATION = { locale: 'id', strength: 2 } // urutan nama ala bahasa Indonesia, tidak peka huruf besar/kecil
 
 const notFound = () => new AppError('Gunung tidak ditemukan', 'NOT_FOUND', 404)
 
-// id di respons = slug (keputusan #1); managed_by dan id database tidak dikirim
-function toMountain(doc) {
+// id di respons = slug (keputusan #1); managed_by dan id database tidak dikirim.
+// Diekspor karena logbook dan checklist menyertakan objek gunung utuh (kartu memakai nama, cover, ketinggian).
+export function toMountain(doc) {
   const { id, slug, managedBy, ...rest } = serialize(doc)
   const result = { id: slug, ...rest }
   if (doc.updatedAt) result.updatedAt = toDateOnly(doc.updatedAt) // mock mengirim YYYY-MM-DD
