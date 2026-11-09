@@ -42,7 +42,12 @@ export async function createReview(req, res) {
   const { rating, text, tags, route, logbookId } = req.valid.body
   const userId = req.user.id
 
-  if (route && !(await Route.exists({ mountain_id: mountain._id, name: route }))) {
+  // satu ulasan per pengguna per gunung (keputusan #28); ulasan yang ditolak admin boleh ditulis ulang
+  if (await Review.exists({ mountain_id: mountain._id, user_id: userId, status: { $in: ['pending', 'approved'] } })) {
+    throw new AppError('Kamu sudah menulis ulasan untuk gunung ini', 'ALREADY_REVIEWED', 409)
+  }
+
+  if (route &&!(await Route.exists({ mountain_id: mountain._id, name: route }))) {
     throw new AppError('Jalur tidak ditemukan di gunung ini', 'VALIDATION_ERROR', 400)
   }
 

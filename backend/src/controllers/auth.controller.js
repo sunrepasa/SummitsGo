@@ -1,15 +1,9 @@
-import bcrypt from 'bcryptjs'
 import User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
+import { checkPassword, DUMMY_HASH, hashPassword } from '../utils/password.js'
 import { RESERVED_USERNAMES } from '../utils/schemas.js'
 import { toSessionUser } from '../utils/serializer.js'
 import { signToken } from '../utils/token.js'
-
-const BCRYPT_ROUNDS = 10
-
-// hash palsu untuk dibandingkan saat akun tidak ditemukan: waktu responsnya jadi sama dengan
-// password salah, sehingga penyerang tidak bisa menebak email mana yang terdaftar dari kecepatan jawaban
-const DUMMY_HASH = bcrypt.hashSync('bukan-password-sungguhan', BCRYPT_ROUNDS)
 
 const usernameTaken = () => new AppError('Username sudah dipakai', 'USERNAME_TAKEN', 409)
 const emailTaken = () => new AppError('Email sudah terdaftar', 'EMAIL_TAKEN', 409)
@@ -22,7 +16,7 @@ export async function register(req, res) {
   if (RESERVED_USERNAMES.has(username) || (await User.exists({ username }))) throw usernameTaken()
   if (await User.exists({ email })) throw emailTaken()
 
-  const hash = await bcrypt.hash(password, BCRYPT_ROUNDS)
+  const hash = await hashPassword(password)
 
   let user
   try {
@@ -41,7 +35,7 @@ export async function login(req, res) {
   const { identifier, password } = req.valid.body
 
   const user = await User.findOne({ $or: [{ username: identifier }, { email: identifier }] }).select('+password')
-  const valid = await bcrypt.compare(password, user?.password ?? DUMMY_HASH)
+  const valid = await checkPassword(password, user?.password ?? DUMMY_HASH)
 
   // pesan yang sama untuk akun tidak ada dan password salah
   if (!user || !valid) {
