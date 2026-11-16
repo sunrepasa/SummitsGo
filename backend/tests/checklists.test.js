@@ -196,6 +196,23 @@ describe('barang: tambah, klaim, centang, hapus', () => {
     expect([ok.status, ok.body.ownerId]).toEqual([200, null])
   })
 
+  test('batal klaim pada barang tanpa pemilik tapi tercentang → 403, bukan 200', async () => {
+    const { base, rani, as, items, checklist } = await setup()
+    await Checklist.updateOne({ _id: checklist._id }, { $set: { 'items.0.done': true, 'items.0.owner_id': null } })
+    const res = await request(app).delete(`${base}/items/${items[0]}/claim`).set('Authorization', as(rani))
+    expect([res.status, res.body.code]).toEqual([403, 'FORBIDDEN'])
+    const free = await request(app).delete(`${base}/items/${items[1]}/claim`).set('Authorization', as(rani))
+    expect([free.status, free.body.ownerId, free.body.done]).toEqual([200, null, false])
+  })
+
+  test('centang barang yang belum diklaim → 403 dan database tidak berubah', async () => {
+    const { base, sayz, as, items, checklist } = await setup()
+    const res = await request(app).patch(`${base}/items/${items[0]}`).set('Authorization', as(sayz)).send({ done: true })
+    expect(res.status).toBe(403)
+    const stored = await Checklist.findById(checklist._id).lean()
+    expect([stored.items[0].owner_id, stored.items[0].done]).toEqual([null, false])
+  })
+
   test('hapus barang: Ketua selalu bisa; penambah hanya selama belum diklaim; anggota lain tidak', async () => {
     const { base, sayz, rani, as, items } = await setup()
     const added = await request(app).post(`${base}/items`).set('Authorization', as(rani)).send({ name: 'Snack', category: 'Logistik' })

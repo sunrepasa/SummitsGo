@@ -172,8 +172,12 @@ export async function setItemDone(req, res) {
   const item = findItem(doc, req.params.itemId)
   if (!item) throw itemNotFound()
 
+  // dicek lebih dulu supaya barang yang belum diklaim tidak pernah ikut tercentang
+  if (String(item.owner_id) !== req.user.id) throw notOwnerOfItem()
+
   const me = new ObjectId(req.user.id)
   const { done } = req.valid.body
+  // syarat pemilik tetap ada di filter: kalau klaim berubah di antara baca dan tulis, tidak ada yang tertulis
   await Checklist.updateOne(
     { _id: doc._id },
     { $set: { 'items.$[it].done': done } },
@@ -182,11 +186,11 @@ export async function setItemDone(req, res) {
 
   const fresh = findItem((await Checklist.findById(doc._id).select('items').lean()) ?? { items: [] }, item._id)
   if (!fresh) throw itemNotFound()
-  if (String(fresh.owner_id) !== req.user.id) {
-    throw new AppError('Hanya anggota yang mengklaim barang ini yang bisa mencentangnya', 'FORBIDDEN', 403)
-  }
+  if (String(fresh.owner_id) !== req.user.id) throw notOwnerOfItem()
   res.json(toItem(fresh))
 }
+
+const notOwnerOfItem = () => new AppError('Hanya anggota yang mengklaim barang ini yang bisa mencentangnya', 'FORBIDDEN', 403)
 
 // DELETE /checklists/:id/items/:itemId — Ketua, atau penambah barang selama belum diklaim siapa pun
 export async function deleteItem(req, res) {
@@ -232,7 +236,13 @@ export async function unclaimItem(req, res) {
   const { doc } = await loadForMember(req.params.id, req.user.id)
   const item = findItem(doc, req.params.itemId)
   if (!item) throw itemNotFound()
-  if (!item.owner_id) return res.json(toItem(item)) // sudah tidak diklaim
+
+  // barang bebas dan belum dicentang: tidak ada yang perlu dibatalkan, dianggap berhasil
+  if (!item.owner_id && !item.done) return res.json(toItem(item))
+  if (String(item.owner_id) !== req.user.id) {
+    throw new AppError('Kamu tidak sedang mengklaim barang ini', 'FORBIDDEN', 403)
+  }
+  if (item.done) throw new AppError('Batalkan centang dulu sebelum melepas klaim', 'FORBIDDEN', 403)
 
   const me = new ObjectId(req.user.id)
   const result = await Checklist.updateOne(
@@ -241,6 +251,7 @@ export async function unclaimItem(req, res) {
     { arrayFilters: [{ 'it._id': item._id, 'it.owner_id': me, 'it.done': false }] },
   )
   if (result.modifiedCount === 0) {
+    // data berubah di antara baca dan tulis (misalnya barang baru saja dicentang)
     throw new AppError('Hanya klaim milikmu yang belum dicentang yang bisa dibatalkan', 'FORBIDDEN', 403)
   }
   res.json(toItem({ ...item, owner_id: null }))
