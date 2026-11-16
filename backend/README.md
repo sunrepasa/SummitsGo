@@ -66,19 +66,6 @@ npm test
 - Pertama kali dijalankan, program MongoDB (sekitar 100 MB) diunduh sekali; jalankan berikutnya cepat.
 - File uji ada di `tests/`, satu file per fitur. Pembuat data uji di `tests/helpers/factory.js`.
 
-## Koleksi Postman
-
-File `postman/SummitsGo-API.postman_collection.json` berisi semua endpoint yang sudah jadi, lengkap dengan contoh body
-dan pengecekan otomatis (kode HTTP yang diharapkan).
-
-1. Postman → **Import** → pilih file tersebut.
-2. Jalankan backend (`npm run seed` lalu `npm run dev`).
-3. Klik kanan koleksi **SummitsGo API** → **Run collection** → **Run**.
-
-Urutan folder sudah diatur (0 → A → B → C → D → E → F → Z). Folder A membuat **Akun Uji** dengan username acak dan
-folder Z menghapusnya lagi, jadi koleksi aman dijalankan berulang. Token terisi otomatis oleh request "Login sayz"
-dan "Daftar Akun Uji".
-
 ## Struktur folder
 
 ```

@@ -179,7 +179,7 @@ export async function setItemDone(req, res) {
   const { done } = req.valid.body
   // syarat pemilik tetap ada di filter: kalau klaim berubah di antara baca dan tulis, tidak ada yang tertulis
   await Checklist.updateOne(
-    { _id: doc._id },
+    { _id: doc._id, items: { $elemMatch: { _id: item._id, owner_id: me } } },
     { $set: { 'items.$[it].done': done } },
     { arrayFilters: [{ 'it._id': item._id, 'it.owner_id': me }] },
   )
@@ -213,8 +213,10 @@ export async function claimItem(req, res) {
   if (!item) throw itemNotFound()
 
   const me = new ObjectId(req.user.id)
+  // syarat "belum diklaim" dipasang di filter dokumen ($elemMatch) DAN di arrayFilters:
+  // dokumen hanya ditulis kalau barangnya masih bebas tepat saat penulisan
   const result = await Checklist.updateOne(
-    { _id: doc._id },
+    { _id: doc._id, items: { $elemMatch: { _id: item._id, owner_id: null } } },
     { $set: { 'items.$[it].owner_id': me } },
     { arrayFilters: [{ 'it._id': item._id, 'it.owner_id': null }] },
   )
@@ -246,7 +248,7 @@ export async function unclaimItem(req, res) {
 
   const me = new ObjectId(req.user.id)
   const result = await Checklist.updateOne(
-    { _id: doc._id },
+    { _id: doc._id, items: { $elemMatch: { _id: item._id, owner_id: me, done: false } } },
     { $set: { 'items.$[it].owner_id': null } },
     { arrayFilters: [{ 'it._id': item._id, 'it.owner_id': me, 'it.done': false }] },
   )
