@@ -37,6 +37,8 @@ export const env = {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
+  // alamat frontend, dipakai menyusun tautan undangan checklist (/join/:code); bawaan = origin CORS pertama
+  frontendUrl: (process.env.FRONTEND_URL || (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',')[0].trim()).replace(/\/+$/, ''),
   // alamat backend yang dibuka browser; dipakai menyusun URL lengkap foto karena frontend ada di origin lain
   publicUrl: (process.env.PUBLIC_URL || `http://localhost:${port}`).replace(/\/+$/, ''),
   // folder foto unggahan (pengembangan); produksi bisa diganti layanan eksternal tanpa mengubah skema

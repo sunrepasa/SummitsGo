@@ -96,6 +96,14 @@ describe('POST /mountains/:id/reviews', () => {
     expect([res.status, res.body.code]).toEqual([400, 'VALIDATION_ERROR'])
   })
 
+  test('isian salah dilaporkan sebelum bentrok: sudah mengulas + jalur salah → 400, bukan 409', async () => {
+    const { sayz } = await setup()
+    const auth = `Bearer ${sayz.token}`
+    await request(app).post(url).set('Authorization', auth).send(body)
+    const res = await request(app).post(url).set('Authorization', auth).send({ ...body, route: 'Jalur Karangan' })
+    expect([res.status, res.body.code]).toEqual([400, 'VALIDATION_ERROR'])
+  })
+
   test('memakai logbook milik orang lain → 400', async () => {
     const { batur, sayz, rani } = await setup()
     const raniLog = await createLogbook(rani.user, batur, { verified: true })

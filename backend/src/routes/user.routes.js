@@ -4,6 +4,7 @@ import {
   deleteMe,
   getSavedMountain,
   saveMountain,
+  searchUsers,
   unsaveMountain,
   updateMe,
   usernameAvailable,
@@ -11,7 +12,7 @@ import {
 import { auth } from '../middleware/auth.js'
 import { authLimiter } from '../middleware/rateLimit.js'
 import { validate } from '../middleware/validate.js'
-import { passwordChangeSchema, profileUpdateSchema, usernameQuerySchema } from '../utils/schemas.js'
+import { passwordChangeSchema, profileUpdateSchema, userSearchQuerySchema, usernameQuerySchema } from '../utils/schemas.js'
 
 const router = Router()
 
@@ -28,6 +29,7 @@ router.get('/me/saved-mountains/:mountainId', auth, getSavedMountain)
 router.put('/me/saved-mountains/:mountainId', auth, saveMountain)
 router.delete('/me/saved-mountains/:mountainId', auth, unsaveMountain)
 
-// GET /users/search dikerjakan di Fase 6 karena butuh data anggota dan undangan checklist
+// cari pengguna untuk diundang ke checklist
+router.get('/search', auth, validate(userSearchQuerySchema, 'query'), searchUsers)
 
 export default router

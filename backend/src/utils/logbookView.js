@@ -1,4 +1,5 @@
 import { LIST_FIELDS, toMountain } from '../controllers/mountain.controller.js'
+import Checklist from '../models/Checklist.js'
 import Mountain from '../models/Mountain.js'
 import User from '../models/User.js'
 import { toDay } from './date.js'
@@ -22,7 +23,7 @@ const dates = (doc) => ({ startDate: toDay(doc.startDate), endDate: toDay(doc.en
 
 // ---- untuk pemilik entri (GET /logbooks/me, /logbooks/:id) ----
 
-function toOwnerEntry(doc, mountain, users, viewerId) {
+function toOwnerEntry(doc, mountain, users, viewerId, checklistNames) {
   return {
     id: String(doc._id),
     mountain,
@@ -37,21 +38,28 @@ function toOwnerEntry(doc, mountain, users, viewerId) {
     photos: (doc.photos ?? []).map(toPhoto),
     // anggota yang akunnya sudah dihapus tidak ditampilkan
     crew: (doc.crew ?? []).map((id) => users.get(String(id))).filter(Boolean),
-    // nama checklist asal pendakian; diisi setelah collection checklists ada (Fase 6)
-    checklistName: null,
+    // checklist asal pendakian; checklist tidak punya nama sendiri, jadi dipakai "Gunung · Jalur".
+    // null bila entri manual atau checklist-nya sudah dihapus
+    checklistName: checklistNames.get(String(doc.checklist_id)) ?? null,
   }
 }
 
 export async function ownerEntries(docs, viewerId) {
-  const [mountains, users] = await Promise.all([
+  const checklistIds = docs.map((d) => d.checklist_id).filter(Boolean)
+  const [mountains, users, checklists] = await Promise.all([
     mountainMap(docs),
     User.find({ _id: { $in: idsOf(docs, 'crew') } }).select('name').lean(),
+    checklistIds.length ? Checklist.find({ _id: { $in: checklistIds } }).select('mountain_id route').lean() : [],
   ])
   const userMap = new Map(users.map((u) => [String(u._id), { id: String(u._id), name: u.name }]))
+  const checklistMountains = await mountainMap(checklists)
+  const checklistNames = new Map(
+    checklists.map((c) => [String(c._id), `${checklistMountains.get(String(c.mountain_id))?.name ?? 'Checklist'} · ${c.route}`]),
+  )
   // entri yang gunungnya sudah dihapus admin dilewati supaya halaman tidak rusak
   return docs
     .filter((d) => mountains.has(String(d.mountain_id)))
-    .map((d) => toOwnerEntry(d, mountains.get(String(d.mountain_id)), userMap, viewerId))
+    .map((d) => toOwnerEntry(d, mountains.get(String(d.mountain_id)), userMap, viewerId, checklistNames))
 }
 
 export const ownerEntry = async (doc, viewerId) => (await ownerEntries([doc], viewerId))[0] ?? null

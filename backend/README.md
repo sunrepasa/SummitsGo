@@ -33,6 +33,7 @@ Cek server hidup: buka `http://localhost:3000/api/v1/health`, harus muncul `"dat
 | `JWT_SECRET` | ya | (acak, minimal 32 karakter) | Buat dengan `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
 | `JWT_EXPIRES_IN` | tidak | `30d` | Masa berlaku token; panjang agar pendaki tetap masuk saat offline |
 | `CORS_ORIGIN` | tidak | `http://localhost:5173` | Alamat frontend yang diizinkan, pisahkan dengan koma |
+| `FRONTEND_URL` | tidak | `http://localhost:5173` | Alamat frontend untuk tautan undangan checklist (`/join/:code`). Kosong = origin pertama di `CORS_ORIGIN` |
 | `PUBLIC_URL` | tidak | `http://localhost:3000` | Alamat backend yang dibuka browser; dipakai menyusun URL foto. Ganti saat deploy |
 | `UPLOAD_DIR` | tidak | `uploads` | Folder foto unggahan, relatif terhadap folder `backend` |
 | `ADMIN_PASSWORD` | tidak | (minimal 12 karakter) | Sandi akun admin saat seed; kosong = akun admin tidak dibuat |
@@ -45,7 +46,7 @@ Cek server hidup: buka `http://localhost:3000/api/v1/health`, harus muncul `"dat
 | --- | --- |
 | `npm run dev` | Server pengembangan (nodemon) |
 | `npm start` | Server tanpa restart otomatis |
-| `npm run seed` | Isi data awal: 5 gunung Bali, 8 jalur, akun `sayz` dan admin, serta data demo `sayz` (3 logbook termasuk 1 draf, 2 ulasan) |
+| `npm run seed` | Isi data awal: 5 gunung Bali, 8 jalur, akun `sayz` dan admin, 2 template checklist bawaan, serta data demo `sayz` (3 logbook termasuk 1 draf, 2 ulasan, 1 checklist dengan kode undangan `demo01`) |
 | `npm test` | Uji otomatis (Jest + Supertest) |
 
 ### Akun hasil seed
@@ -64,6 +65,19 @@ npm test
 - Memakai **MongoDB sungguhan di memori** (`mongodb-memory-server`), jadi **tidak menyentuh database Atlas**.
 - Pertama kali dijalankan, program MongoDB (sekitar 100 MB) diunduh sekali; jalankan berikutnya cepat.
 - File uji ada di `tests/`, satu file per fitur. Pembuat data uji di `tests/helpers/factory.js`.
+
+## Koleksi Postman
+
+File `postman/SummitsGo-API.postman_collection.json` berisi semua endpoint yang sudah jadi, lengkap dengan contoh body
+dan pengecekan otomatis (kode HTTP yang diharapkan).
+
+1. Postman → **Import** → pilih file tersebut.
+2. Jalankan backend (`npm run seed` lalu `npm run dev`).
+3. Klik kanan koleksi **SummitsGo API** → **Run collection** → **Run**.
+
+Urutan folder sudah diatur (0 → A → B → C → D → E → F → Z). Folder A membuat **Akun Uji** dengan username acak dan
+folder Z menghapusnya lagi, jadi koleksi aman dijalankan berulang. Token terisi otomatis oleh request "Login sayz"
+dan "Daftar Akun Uji".
 
 ## Struktur folder
 
@@ -98,7 +112,7 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 | PUT | `/users/me/password` | ya | jadi |
 | DELETE | `/users/me` | ya | jadi |
 | GET / PUT / DELETE | `/users/me/saved-mountains/:mountainId` | ya | jadi |
-| GET | `/users/search` | ya | Fase 6 |
+| GET | `/users/search?q=&checklistId=&limit=` | ya | jadi |
 | GET | `/mountains` | tidak | jadi |
 | GET | `/mountains/provinces` | tidak | jadi |
 | GET | `/mountains/recommended` | tidak | jadi |
@@ -121,7 +135,21 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 | GET | `/public/users/:username` | tidak (opsional) | jadi |
 | GET | `/public/entries/:slug` | tidak (opsional) | jadi |
 | PUT / DELETE | `/public/entries/:slug/like` | ya | jadi |
-| Checklist dan undangan (20) | | | Fase 6 |
+| GET / POST | `/checklists` | ya | jadi |
+| GET / DELETE | `/checklists/:id` | ya | jadi (hapus: hanya Ketua) |
+| GET | `/checklist-templates` | ya | jadi |
+| POST | `/checklists/:id/template` | ya | jadi (hanya Ketua) |
+| POST | `/checklists/:id/items` | ya | jadi |
+| PATCH / DELETE | `/checklists/:id/items/:itemId` | ya | jadi |
+| POST / DELETE | `/checklists/:id/items/:itemId/claim` | ya | jadi |
+| DELETE | `/checklists/:id/members/:memberId` | ya | jadi (Ketua mengeluarkan, anggota keluar sendiri) |
+| POST | `/checklists/:id/invite-link` | ya | jadi (hanya Ketua) |
+| POST | `/checklists/:id/invitations` | ya | jadi (hanya Ketua) |
+| DELETE | `/checklists/:id/invitations/:invitationId` | ya | jadi (hanya Ketua) |
+| GET | `/invitations/me` | ya | jadi |
+| POST | `/invitations/:id/accept`, `/invitations/:id/decline` | ya | jadi |
+| GET | `/invites/:code` | tidak (opsional) | jadi |
+| POST | `/invites/:code/join` | ya | jadi |
 | Notifikasi (7) | | | Fase 7 |
 | Admin (8) | | admin | Fase 8 |
 
@@ -138,6 +166,10 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 | `USERNAME_COOLDOWN` | 409 | Ganti username sebelum 7 hari |
 | `ALREADY_REVIEWED` | 409 | Sudah menulis ulasan (pending/disetujui) untuk gunung itu |
 | `PHOTO_LIMIT` | 409 | Foto logbook sudah 10 |
+| `ALREADY_CLAIMED` | 409 | Barang checklist sudah diklaim anggota lain |
+| `ALREADY_MEMBER`, `ALREADY_INVITED` | 409 | Yang diundang sudah anggota atau masih punya undangan pending |
+| `USER_NOT_FOUND` | 404 | Username yang diundang tidak ada |
+| `ITEM_NOT_FOUND` | 404 | Barang checklist tidak ada |
 | `RATE_LIMITED` | 429 | Terlalu banyak percobaan login, daftar, atau ganti sandi |
 | `INTERNAL_ERROR` | 500 | Kesalahan di server |
 

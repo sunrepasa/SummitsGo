@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs'
 import mongoose from 'mongoose'
 import { connectDB } from '../config/db.js'
 import { env } from '../config/env.js'
+import Checklist from '../models/Checklist.js'
+import ChecklistTemplate from '../models/ChecklistTemplate.js'
 import Logbook from '../models/Logbook.js'
 import Mountain from '../models/Mountain.js'
 import Review from '../models/Review.js'
@@ -12,6 +14,7 @@ import { recalcMountainRating } from '../utils/mountainRating.js'
 import { demoLogbooks } from './data/logbooks.js'
 import { mountains } from './data/mountains.js'
 import { demoReviews } from './data/reviews.js'
+import { demoChecklist, systemTemplates } from './data/templates.js'
 
 // Aman dijalankan berulang: semua langkah memakai upsert. Data yang sudah diubah lewat aplikasi
 // (password, rating, popularitas) tidak ditimpa.
@@ -90,13 +93,42 @@ async function seedReviews() {
   console.log(`Ulasan demo: ${demoReviews.length}`)
 }
 
+async function seedChecklists() {
+  // template bawaan: kunci = user_id null + nama; isinya boleh diperbarui seed ($set)
+  for (const template of systemTemplates) {
+    await ChecklistTemplate.updateOne({ user_id: null, name: template.name }, { $set: template }, { upsert: true })
+  }
+
+  // checklist demo: kunci = kode undangan. Hanya dibuat sekali ($setOnInsert), jadi klaim, centang,
+  // dan anggota yang ditambahkan saat uji tidak dikembalikan seed.
+  const owner = await User.findOne({ username: 'sayz' }).select('_id').lean()
+  const mountain = await Mountain.findOne({ slug: demoChecklist.mountainSlug }).select('_id').lean()
+  const template = systemTemplates.find((t) => t.name === demoChecklist.templateName)
+  if (owner && mountain && template) {
+    await Checklist.updateOne(
+      { inviteCode: demoChecklist.inviteCode },
+      {
+        $setOnInsert: {
+          mountain_id: mountain._id,
+          route: demoChecklist.route,
+          plannedDate: parseDay(demoChecklist.plannedDate),
+          members: [{ user_id: owner._id, role: 'leader' }],
+          items: template.items.map(({ name, category }) => ({ name, category, owner_id: null, done: false, addedBy: owner._id })),
+        },
+      },
+      { upsert: true },
+    )
+  }
+  console.log(`Template bawaan: ${systemTemplates.length}, checklist demo: 1 (kode undangan ${demoChecklist.inviteCode})`)
+}
+
 try {
   await connectDB()
   await seedUsers()
   await seedMountains()
   await seedLogbooks() // sebelum ulasan: label terverifikasi ulasan bergantung pada logbook
   await seedReviews()
-  // Fase berikutnya menambah langkah di sini (template checklist, data demo checklist)
+  await seedChecklists()
   console.log('Seed selesai')
 } catch (err) {
   console.error('Seed gagal:', err.message)

@@ -168,3 +168,44 @@ export const logbookNoteSchema = z.strictObject({ note: noteSchema })
 export const logbookVisibilitySchema = z.strictObject({
   isPublic: z.boolean('isPublic wajib diisi true/false'),
 })
+
+// ---- checklist ----
+// Batas panjang sama dengan form di frontend: nama barang 60, kategori 30, nama template 40.
+const dayOrEmpty = z.preprocess(
+  blankToUndefined,
+  z.string('Tanggal tidak valid').regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD').optional(),
+)
+
+export const checklistCreateSchema = z.strictObject({
+  mountainId: z.string('Pilih gunung').trim().toLowerCase().min(1, 'Pilih gunung').max(60),
+  route: z.string('Pilih jalur').trim().min(1, 'Pilih jalur').max(100, 'Nama jalur terlalu panjang'),
+  plannedDate: dayOrEmpty,
+  templateId: z.preprocess(blankToUndefined, objectIdSchema.optional()),
+})
+
+export const checklistItemSchema = z.strictObject({
+  name: z.string('Nama barang wajib diisi').trim().min(1, 'Nama barang wajib diisi').max(60, 'Nama barang maksimal 60 karakter'),
+  category: z.string('Kategori wajib diisi').trim().min(1, 'Kategori wajib diisi').max(30, 'Kategori maksimal 30 karakter'),
+})
+
+export const itemDoneSchema = z.strictObject({ done: z.boolean('done wajib diisi true/false') })
+
+export const templateNameSchema = z.strictObject({
+  name: z.string('Nama template wajib diisi').trim().min(1, 'Nama template wajib diisi').max(40, 'Nama template maksimal 40 karakter'),
+})
+
+export const inviteUsernameSchema = z.strictObject({
+  // "@rani.n" juga diterima; tanda @ dibuang
+  username: z
+    .string('Username wajib diisi')
+    .trim()
+    .toLowerCase()
+    .transform((v) => v.replace(/^@/, ''))
+    .pipe(z.string().min(1, 'Username wajib diisi').max(20, 'Username tidak valid')),
+})
+
+export const userSearchQuerySchema = z.strictObject({
+  q: z.preprocess((v) => (v === undefined ? '' : v), z.string('Kata kunci tidak valid').max(50, 'Kata kunci terlalu panjang')),
+  checklistId: z.preprocess(blankToUndefined, objectIdSchema.optional()),
+  limit: z.preprocess(blankToUndefined, z.coerce.number('limit harus angka').int().min(1).max(5, 'limit maksimal 5').optional()),
+})

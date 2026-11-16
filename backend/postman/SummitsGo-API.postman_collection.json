@@ -1,0 +1,3819 @@
+{
+  "info": {
+    "name": "SummitsGo API",
+    "description": "REST API SummitsGo (Express + MongoDB). Prefiks `/api/v1`, format error `{ message, code }`.\n\nCara pakai:\n1. Jalankan backend (`npm run seed` lalu `npm run dev`).\n2. Klik kanan koleksi > Run collection > Run. Urutan folder sudah diatur: 0 > A > B > C > D > E > F > Z.\n3. Akun Uji dibuat acak di folder A dan dihapus di folder Z, jadi koleksi aman dijalankan berulang.\n\nVariabel: `baseUrl` = http://localhost:3000/api/v1. Token diisi otomatis oleh request \"Login sayz\" dan \"Daftar Akun Uji\".",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "0. System",
+      "description": "Cek server hidup dan tersambung ke database.",
+      "item": [
+        {
+          "name": "Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('database tersambung', () => pm.expect(pm.response.json().database).to.eql('connected'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "A. Auth & Users",
+      "description": "Daftar, masuk, profil, sandi, dan gunung tersimpan. \"Login sayz\" menyimpan {{token}}; \"Daftar Akun Uji\" membuat akun acak dan menyimpan {{tokenUji}} (dihapus lagi di folder Z).",
+      "item": [
+        {
+          "name": "Login sayz",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('token', pm.response.json().token)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Token disimpan ke variabel {{token}} untuk request lain.\n\nHarapan: **200**",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"sayz\",\n  \"password\": \"rahasia123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login Sandi Salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401))",
+                  "pm.test('kode INVALID_CREDENTIALS', () => pm.expect(pm.response.json().code).to.eql('INVALID_CREDENTIALS'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Harapan: **401**",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"sayz\",\n  \"password\": \"salah12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Daftar Akun Uji",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// username acak supaya koleksi bisa dijalankan berulang tanpa 409",
+                  "const u = 'uji_' + String(Date.now()).slice(-8)",
+                  "pm.collectionVariables.set('ujiUsername', u)",
+                  "pm.collectionVariables.set('ujiEmail', u + '@uji.test')"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('tokenUji', pm.response.json().token)",
+                  "pm.test('role selalu user', () => pm.expect(pm.response.json().user.role).to.eql('user'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Harapan: **201**",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Akun Uji Postman\",\n  \"username\": \"{{ujiUsername}}\",\n  \"email\": \"{{ujiEmail}}\",\n  \"password\": \"rahasia123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Daftar Mengirim Role Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Field role ditolak: akun admin tidak bisa dibuat lewat form daftar.\n\nHarapan: **400**",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Penyusup\",\n  \"username\": \"penyusup1\",\n  \"email\": \"penyusup@uji.test\",\n  \"password\": \"rahasia123\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cek Username Tersedia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('sayz sudah dipakai', () => pm.expect(pm.response.json().available).to.eql(false))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/username-available?username=sayz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "username-available"
+              ],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "sayz"
+                }
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Ubah Profil Akun Uji",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Akun Uji Postman\",\n  \"bio\": \"Akun sementara untuk uji Postman\",\n  \"socials\": {\n    \"tiktok\": \"\",\n    \"instagram\": \"uji_ig\",\n    \"website\": \"https://contoh.id/\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ubah Privasi Akun Uji",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('profil jadi privat', () => pm.expect(pm.response.json().isProfilePublic).to.eql(false))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isProfilePublic\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ganti Username Akun Uji",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('ujiUsernameBaru', pm.collectionVariables.get('ujiUsername') + 'b')"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('ujiUsername', pm.response.json().username)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ujiUsernameBaru}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ganti Username Lagi (jeda 7 hari)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409))",
+                  "pm.test('kode USERNAME_COOLDOWN', () => pm.expect(pm.response.json().code).to.eql('USERNAME_COOLDOWN'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Harapan: **409**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"uji_tidak_boleh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ganti Username ke Milik Orang Lain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Username dicadangkan.\n\nHarapan: **409**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ganti Sandi Akun Uji",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"rahasia123\",\n  \"newPassword\": \"sandiBaru99\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ganti Sandi Lama Salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            },
+            "description": "400 (bukan 401) dengan kode INVALID_CREDENTIALS, supaya frontend tidak mengira token habis.\n\nHarapan: **400**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"salah12345\",\n  \"newPassword\": \"sandiBaru77\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cek Gunung Tersimpan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/saved-mountains/batur",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "saved-mountains",
+                "batur"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Simpan Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('tersimpan', () => pm.expect(pm.response.json().saved).to.eql(true))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/saved-mountains/batur",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "saved-mountains",
+                "batur"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Hapus Gunung Tersimpan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('tidak tersimpan', () => pm.expect(pm.response.json().saved).to.eql(false))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/saved-mountains/batur",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "saved-mountains",
+                "batur"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Endpoint Pengguna Tanpa Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Harapan: **401**",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "B. Mountains & Routes",
+      "description": "Semua tanpa token (akses tamu).",
+      "item": [
+        {
+          "name": "Semua Data Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Filter Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains?difficulty=hard&status=open&sort=name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains"
+              ],
+              "query": [
+                {
+                  "key": "difficulty",
+                  "value": "hard"
+                },
+                {
+                  "key": "status",
+                  "value": "open"
+                },
+                {
+                  "key": "sort",
+                  "value": "name"
+                }
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Cari Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains?q=batu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "batu"
+                }
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Urutan Tidak Dikenal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains?sort=xx",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "xx"
+                }
+              ]
+            },
+            "description": "Harapan: **400**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Daftar Provinsi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/provinces",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "provinces"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Rekomendasi Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/recommended",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "recommended"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Detail Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/abang",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "abang"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Detail Gunung Tidak Ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/rinjani",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "rinjani"
+              ]
+            },
+            "description": "Harapan: **404**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Jalur Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/routes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "routes"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Cuaca Gunung",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/batur/weather",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "batur",
+                "weather"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Peta Jalur (belum ada koordinat)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/mountains/abang/routes/Suter/map",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "mountains",
+                "abang",
+                "routes",
+                "Suter",
+                "map"
+              ]
+            },
+            "description": "Harapan: **404**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Promosi Beranda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/promotions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "promotions"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "C. Reviews",
+      "description": "Membaca boleh tamu; menulis wajib login. Ulasan baru berstatus pending sampai disetujui admin.",
+      "item": [
+        {
+          "name": "Daftar Ulasan Batur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/batur/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "batur",
+                "reviews"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Daftar Ulasan Gunung Tidak Ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/rinjani/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "rinjani",
+                "reviews"
+              ]
+            },
+            "description": "Harapan: **404**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Tulis Ulasan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status salah satu dari 201/409', () => pm.expect([201, 409]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "reviews"
+              ]
+            },
+            "description": "Pertama kali 201 (pending). Berikutnya 409 ALREADY_REVIEWED karena satu ulasan per gunung.\n\nHarapan: **201 atau 409**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"text\": \"Jalurnya jelas, berangkat jam 3 pagi\",\n  \"tags\": [\n    \"crowded\"\n  ],\n  \"route\": \"Pasar Agung\",\n  \"logbookId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tulis Ulasan Tanpa Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "reviews"
+              ]
+            },
+            "description": "Harapan: **401**",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"text\": \"Jalurnya jelas, berangkat jam 3 pagi\",\n  \"tags\": [\n    \"crowded\"\n  ],\n  \"route\": \"Pasar Agung\",\n  \"logbookId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tulis Ulasan Rating Salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "reviews"
+              ]
+            },
+            "description": "Harapan: **400**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 7,\n  \"text\": \"Jalurnya jelas, berangkat jam 3 pagi\",\n  \"tags\": [\n    \"crowded\"\n  ],\n  \"route\": \"Pasar Agung\",\n  \"logbookId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tulis Ulasan Teks Pendek",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "reviews"
+              ]
+            },
+            "description": "Harapan: **400**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"text\": \"pendek\",\n  \"tags\": [\n    \"crowded\"\n  ],\n  \"route\": \"Pasar Agung\",\n  \"logbookId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tulis Ulasan Jalur Salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "reviews"
+              ]
+            },
+            "description": "Harapan: **400**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"text\": \"Jalurnya jelas, berangkat jam 3 pagi\",\n  \"tags\": [\n    \"crowded\"\n  ],\n  \"route\": \"Jalur Karangan\",\n  \"logbookId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tulis Ulasan Kirim Verified",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mountains/agung/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mountains",
+                "agung",
+                "reviews"
+              ]
+            },
+            "description": "Label terverifikasi dihitung server, tidak boleh dikirim klien.\n\nHarapan: **400**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"text\": \"Jalurnya jelas, berangkat jam 3 pagi\",\n  \"tags\": [\n    \"crowded\"\n  ],\n  \"route\": \"Pasar Agung\",\n  \"logbookId\": null,\n  \"verified\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "D. Checklists & Invitations",
+      "description": "Alur lengkap: sayz membuat checklist (Ketua), mengundang Akun Uji, Akun Uji bergabung dan mengklaim barang, lalu checklist dihapus lagi.",
+      "item": [
+        {
+          "name": "Daftar Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "const sys = pm.response.json().system",
+                  "if (sys.length) pm.collectionVariables.set('templateId', sys[0].id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklist-templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklist-templates"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Buat Checklist",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// tanggal rencana 30 hari dari sekarang (tidak boleh di masa lalu)",
+                  "pm.collectionVariables.set('plannedDate', new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10))"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))",
+                  "const c = pm.response.json()",
+                  "pm.collectionVariables.set('checklistId', c.id)",
+                  "pm.collectionVariables.set('itemId', c.items[0].id)",
+                  "pm.test('pembuat jadi Ketua', () => pm.expect(c.role).to.eql('leader'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists"
+              ]
+            },
+            "description": "Harapan: **201**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mountainId\": \"batur\",\n  \"route\": \"Pura Jati\",\n  \"plannedDate\": \"{{plannedDate}}\",\n  \"templateId\": \"{{templateId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Buat Checklist Tanggal Lampau",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists"
+              ]
+            },
+            "description": "Harapan: **400**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mountainId\": \"batur\",\n  \"route\": \"Pura Jati\",\n  \"plannedDate\": \"2020-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Daftar Checklist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Detail Checklist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Detail Checklist Bukan Anggota",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}"
+              ]
+            },
+            "description": "Harapan: **403**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tambah Barang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('newItemId', pm.response.json().id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items"
+              ]
+            },
+            "description": "Harapan: **201**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Trekking pole\",\n  \"category\": \"Perlengkapan Lain\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tambah Barang Nama Kosong",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items"
+              ]
+            },
+            "description": "Harapan: **400**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"category\": \"Lain\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Klaim Barang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{itemId}}/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{itemId}}",
+                "claim"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Centang Barang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{itemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{itemId}}"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"done\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Batal Klaim Barang Tercentang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{itemId}}/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{itemId}}",
+                "claim"
+              ]
+            },
+            "description": "Klaim yang sudah dicentang tidak bisa dibatalkan.\n\nHarapan: **403**"
+          }
+        },
+        {
+          "name": "Batal Centang Barang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{itemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{itemId}}"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"done\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Batal Klaim Barang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{itemId}}/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{itemId}}",
+                "claim"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Buat Tautan Undangan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('inviteCode', pm.response.json().url.split('/join/')[1])"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/invite-link",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "invite-link"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Cari Pengguna",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "const found = pm.response.json().find((u) => u.username === pm.collectionVariables.get('ujiUsername'))",
+                  "if (found) pm.collectionVariables.set('ujiUserId', found.id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/search?q={{ujiUsername}}&checklistId={{checklistId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{ujiUsername}}"
+                },
+                {
+                  "key": "checklistId",
+                  "value": "{{checklistId}}"
+                }
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Undang Akun Uji",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "invitations"
+              ]
+            },
+            "description": "Harapan: **201**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ujiUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Undang Akun Uji Lagi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409))",
+                  "pm.test('kode ALREADY_INVITED', () => pm.expect(pm.response.json().code).to.eql('ALREADY_INVITED'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "invitations"
+              ]
+            },
+            "description": "Harapan: **409**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ujiUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Undang Username Tidak Ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "invitations"
+              ]
+            },
+            "description": "Harapan: **404**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"tidak_ada_orangnya\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Undangan Saya (Akun Uji)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "const inv = pm.response.json()",
+                  "if (inv.length) pm.collectionVariables.set('invitationId', inv[0].id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invitations/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invitations",
+                "me"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Terima Undangan (Akun Uji)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invitations/{{invitationId}}/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invitations",
+                "{{invitationId}}",
+                "accept"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Klaim Barang Baru (Akun Uji)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{newItemId}}/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{newItemId}}",
+                "claim"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Klaim Barang Milik Orang Lain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409))",
+                  "pm.test('kode ALREADY_CLAIMED', () => pm.expect(pm.response.json().code).to.eql('ALREADY_CLAIMED'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{newItemId}}/claim",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{newItemId}}",
+                "claim"
+              ]
+            },
+            "description": "Harapan: **409**"
+          }
+        },
+        {
+          "name": "Centang Barang Milik Orang Lain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/items/{{newItemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "items",
+                "{{newItemId}}"
+              ]
+            },
+            "description": "Harapan: **403**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"done\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hapus Checklist oleh Anggota",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}"
+              ]
+            },
+            "description": "Harapan: **403**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pratinjau Tautan Undangan (tamu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('tamu tidak mendapat checklistId', () => pm.expect(pm.response.json().checklistId).to.eql(null))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invites/{{inviteCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invites",
+                "{{inviteCode}}"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Gabung Lewat Tautan (sudah anggota)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invites/{{inviteCode}}/join",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "invites",
+                "{{inviteCode}}",
+                "join"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Keluarkan Akun Uji",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/members/{{ujiUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "members",
+                "{{ujiUserId}}"
+              ]
+            },
+            "description": "Klaim barang Akun Uji otomatis dilepas.\n\nHarapan: **200**"
+          }
+        },
+        {
+          "name": "Undang Akun Uji (untuk dibatalkan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('invitationId', pm.response.json().id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "invitations"
+              ]
+            },
+            "description": "Harapan: **201**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ujiUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Batalkan Undangan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/invitations/{{invitationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "invitations",
+                "{{invitationId}}"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Simpan sebagai Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}/template",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}",
+                "template"
+              ]
+            },
+            "description": "Template tersimpan di akun sayz (belum ada endpoint hapus template).\n\nHarapan: **201**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Template Uji Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hapus Checklist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Detail Checklist Sudah Dihapus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/checklists/{{checklistId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checklists",
+                "{{checklistId}}"
+              ]
+            },
+            "description": "Harapan: **404**"
+          }
+        }
+      ]
+    },
+    {
+      "name": "E. Logbook",
+      "description": "Riwayat, draf, entri manual dengan foto (multipart), catatan, publik/privat, suka. Entri yang dibuat di sini dihapus lagi di akhir folder.",
+      "item": [
+        {
+          "name": "Riwayat Logbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "const list = pm.response.json()",
+                  "if (list.length) pm.collectionVariables.set('logbookId', list[0].id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "me"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Draf Logbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "const list = pm.response.json()",
+                  "if (list.length) pm.collectionVariables.set('draftId', list[0].id)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/drafts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "drafts"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Detail Logbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('ada rekap climbs', () => pm.expect(pm.response.json()).to.have.property('climbs'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{logbookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{logbookId}}"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Detail Logbook Orang Lain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{logbookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{logbookId}}"
+              ]
+            },
+            "description": "Harapan: **403**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tambah Logbook Manual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('newLogbookId', pm.response.json().id)",
+                  "pm.test('entri manual tidak terverifikasi', () => pm.expect(pm.response.json().verified).to.eql(false))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks"
+              ]
+            },
+            "description": "Body form-data (multipart). Field foto bernama \"photo\".\n\nHarapan: **201**",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "mountainId",
+                  "value": "batur",
+                  "type": "text"
+                },
+                {
+                  "key": "route",
+                  "value": "Pura Jati",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-10-01",
+                  "type": "text"
+                },
+                {
+                  "key": "days",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "note",
+                  "value": "Dibuat dari koleksi Postman",
+                  "type": "text"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true,
+                  "description": "Centang lalu pilih foto JPG/PNG/WEBP (maks. 5 MB) bila ingin ikut mengunggah"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tambah Logbook Tanggal Masa Depan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks"
+              ]
+            },
+            "description": "Harapan: **400**",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "mountainId",
+                  "value": "batur",
+                  "type": "text"
+                },
+                {
+                  "key": "route",
+                  "value": "Pura Jati",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2099-01-01",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unggah Foto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status salah satu dari 201/400', () => pm.expect([201, 400]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}/photos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}",
+                "photos"
+              ]
+            },
+            "description": "Pilih file foto di kolom Value baris \"photo\" lalu simpan. Tanpa file hasilnya 400 \"Pilih foto yang akan diunggah\".\n\nHarapan: **201 atau 400**",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ubah Catatan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Catatan diubah lewat Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Publikkan Logbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('newSlug', pm.response.json().slug)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}/visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}",
+                "visibility"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isPublic\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Privatkan Logbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('slug tidak berubah', () => pm.expect(pm.response.json().slug).to.eql(pm.collectionVariables.get('newSlug')))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}/visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}",
+                "visibility"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isPublic\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Suka Entri Sendiri",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('likedByMe true', () => pm.expect(pm.response.json().likedByMe).to.eql(true))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}",
+                "like"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Batal Suka Entri Sendiri",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}",
+                "like"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Konfirmasi Draf",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status salah satu dari 200/404', () => pm.expect([200, 404]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/drafts/{{draftId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "drafts",
+                "{{draftId}}",
+                "confirm"
+              ]
+            },
+            "description": "200 bila draf demo masih ada; 404 bila sudah pernah dikonfirmasi (seed tidak membuatnya ulang).\n\nHarapan: **200 atau 404**"
+          }
+        },
+        {
+          "name": "Hapus Logbook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}"
+              ]
+            },
+            "description": "Harapan: **200**"
+          }
+        },
+        {
+          "name": "Detail Logbook Sudah Dihapus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logbooks/{{newLogbookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logbooks",
+                "{{newLogbookId}}"
+              ]
+            },
+            "description": "Harapan: **404**"
+          }
+        }
+      ]
+    },
+    {
+      "name": "F. Public Profile & Entries",
+      "description": "Halaman publik: tamu boleh membuka; menyukai wajib login.",
+      "item": [
+        {
+          "name": "Profil Publik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('tanpa email', () => pm.expect(pm.response.json().user).to.not.have.property('email'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/users/sayz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "users",
+                "sayz"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Profil Privat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/users/{{ujiUsername}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "users",
+                "{{ujiUsername}}"
+              ]
+            },
+            "description": "Akun Uji dibuat privat di folder A; profil privat dibalas 404, sama dengan profil yang tidak ada.\n\nHarapan: **404**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Entri Publik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))",
+                  "pm.test('catatan pribadi tidak dikirim', () => pm.expect(pm.response.json()).to.not.have.property('note'))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/entries/batur-pura-jati-demo01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "entries",
+                "batur-pura-jati-demo01"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Entri Tidak Ada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/entries/tidak-ada",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "entries",
+                "tidak-ada"
+              ]
+            },
+            "description": "Harapan: **404**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Suka Entri Publik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/entries/batur-pura-jati-demo01/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "entries",
+                "batur-pura-jati-demo01",
+                "like"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Suka Entri Publik Tanpa Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/entries/batur-pura-jati-demo01/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "entries",
+                "batur-pura-jati-demo01",
+                "like"
+              ]
+            },
+            "description": "Harapan: **401**",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Batal Suka Entri Publik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/entries/batur-pura-jati-demo01/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "entries",
+                "batur-pura-jati-demo01",
+                "like"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Z. Bersih-bersih",
+      "description": "Menghapus Akun Uji yang dibuat di folder A.",
+      "item": [
+        {
+          "name": "Hapus Akun Uji",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Harapan: **200**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Token Akun Terhapus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401))"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Token akun yang sudah dihapus langsung tidak berlaku.\n\nHarapan: **401**",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUji}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "tokenUji",
+      "value": ""
+    },
+    {
+      "key": "ujiUsername",
+      "value": ""
+    },
+    {
+      "key": "ujiUsernameBaru",
+      "value": ""
+    },
+    {
+      "key": "ujiEmail",
+      "value": ""
+    },
+    {
+      "key": "ujiUserId",
+      "value": ""
+    },
+    {
+      "key": "templateId",
+      "value": ""
+    },
+    {
+      "key": "plannedDate",
+      "value": ""
+    },
+    {
+      "key": "checklistId",
+      "value": ""
+    },
+    {
+      "key": "itemId",
+      "value": ""
+    },
+    {
+      "key": "newItemId",
+      "value": ""
+    },
+    {
+      "key": "inviteCode",
+      "value": ""
+    },
+    {
+      "key": "invitationId",
+      "value": ""
+    },
+    {
+      "key": "logbookId",
+      "value": ""
+    },
+    {
+      "key": "draftId",
+      "value": ""
+    },
+    {
+      "key": "newLogbookId",
+      "value": ""
+    },
+    {
+      "key": "newSlug",
+      "value": ""
+    }
+  ]
+}

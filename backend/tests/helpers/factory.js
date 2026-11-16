@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import Checklist from '../../src/models/Checklist.js'
 import Logbook from '../../src/models/Logbook.js'
 import Mountain from '../../src/models/Mountain.js'
 import Route from '../../src/models/Route.js'
@@ -45,6 +46,22 @@ export async function createLogbook(user, mountain, { startDate = '2026-09-12', 
     startDate: day(startDate),
     endDate: day(startDate),
     nights: 0,
+    ...overrides,
+  })
+}
+
+// checklist dengan Ketua dan anggota yang diberikan; barang default 3 buah belum diklaim
+export async function createChecklist(mountain, leader, { members = [], items, ...overrides } = {}) {
+  return Checklist.create({
+    mountain_id: mountain._id,
+    route: 'Pura Jati',
+    inviteCode: Math.random().toString(36).slice(2, 8).padEnd(6, '0'),
+    members: [{ user_id: leader._id, role: 'leader' }, ...members.map((m) => ({ user_id: m._id, role: 'member' }))],
+    items: items ?? [
+      { name: 'Tenda', category: 'Perlengkapan Tidur', addedBy: leader._id },
+      { name: 'Kompor', category: 'Memasak & Logistik', addedBy: leader._id },
+      { name: 'Kotak P3K', category: 'P3K & Darurat', addedBy: leader._id },
+    ],
     ...overrides,
   })
 }

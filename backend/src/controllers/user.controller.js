@@ -1,3 +1,7 @@
+import mongoose from 'mongoose'
+import Checklist from '../models/Checklist.js'
+import ChecklistTemplate from '../models/ChecklistTemplate.js'
+import Invitation from '../models/Invitation.js'
 import Logbook from '../models/Logbook.js'
 import User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
@@ -89,11 +93,63 @@ export async function deleteMe(req, res) {
   // keluar dari daftar rombongan entri orang lain
   await Logbook.updateMany({ crew: userId }, { $pull: { crew: userId } })
 
-  // Fase 6-7 menambah langkah di sini: checklist yang ia pimpin beserta undangannya,
-  // keanggotaan dan klaim barang di checklist lain, serta notifikasinya.
+  // checklist yang ia pimpin dihapus beserta undangannya (keputusan 1a)
+  const led = await Checklist.find({ members: { $elemMatch: { user_id: userId, role: 'leader' } } }).select('_id').lean()
+  await Checklist.deleteMany({ _id: { $in: led.map((c) => c._id) } })
+  // di checklist orang lain: keluar dari anggota dan klaim barangnya dilepas (sama dengan dikeluarkan Ketua)
+  const me = new mongoose.Types.ObjectId(userId)
+  await Checklist.updateMany(
+    { 'members.user_id': me },
+    { $pull: { members: { user_id: me } }, $set: { 'items.$[mine].owner_id': null, 'items.$[mine].done': false } },
+    { arrayFilters: [{ 'mine.owner_id': me }] },
+  )
+  // undangan untuk/dari dia, dan undangan ke checklist yang barusan dihapus
+  await Invitation.deleteMany({
+    $or: [{ invitedUser_id: me }, { invitedBy: me }, { checklist_id: { $in: led.map((c) => c._id) } }],
+  })
+  await ChecklistTemplate.deleteMany({ user_id: me })
+
+  // Fase 7 menambah langkah di sini: hapus notifikasinya.
 
   // token lama otomatis tidak berlaku: middleware auth menolak akun yang sudah tidak ada
   res.json({ message: 'Akun berhasil dihapus' })
+}
+
+// GET /users/search?q=&checklistId=&limit= — cari pengguna untuk diundang (min. 2 huruf, maks. 5 hasil).
+// Bentuk mengikuti mock: { id, name, username, state } dengan state 'member' | 'invited' | null.
+export async function searchUsers(req, res) {
+  const { q, checklistId, limit = 5 } = req.valid.query
+  const keyword = q.trim().toLowerCase().replace(/^@/, '')
+  if (keyword.length < 2) return res.json([]) // terlalu pendek: daftar kosong, bukan error
+
+  // status anggota/diundang hanya boleh dilihat anggota checklist itu sendiri
+  let memberIds = new Set()
+  let invitedIds = new Set()
+  if (checklistId) {
+    const checklist = await Checklist.findById(checklistId).select('members').lean()
+    if (!checklist) throw new AppError('Checklist tidak ditemukan', 'NOT_FOUND', 404)
+    memberIds = new Set(checklist.members.map((m) => String(m.user_id)))
+    if (!memberIds.has(req.user.id)) throw new AppError('Kamu bukan anggota checklist ini', 'FORBIDDEN', 403)
+    const pending = await Invitation.find({ checklist_id: checklist._id, status: 'pending' }).select('invitedUser_id').lean()
+    invitedIds = new Set(pending.map((p) => String(p.invitedUser_id)))
+  }
+
+  // kata kunci di-escape agar karakter seperti "." atau "(" tidak dibaca sebagai pola regex
+  const pattern = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+  const users = await User.find({ role: 'user', $or: [{ username: pattern }, { name: pattern }] })
+    .select('name username')
+    .sort({ username: 1 })
+    .limit(limit)
+    .lean()
+
+  res.json(
+    users.map((u) => ({
+      id: String(u._id),
+      name: u.name,
+      username: u.username,
+      state: memberIds.has(String(u._id)) ? 'member' : invitedIds.has(String(u._id)) ? 'invited' : null,
+    })),
+  )
 }
 
 // ---- gunung tersimpan (bookmark) ----
