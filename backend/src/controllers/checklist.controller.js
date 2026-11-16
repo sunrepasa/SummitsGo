@@ -199,8 +199,13 @@ export async function deleteItem(req, res) {
   if (!item) throw itemNotFound()
 
   const condition = role === 'leader' ? { _id: item._id } : { _id: item._id, addedBy: new ObjectId(req.user.id), owner_id: null }
-  const result = await Checklist.updateOne({ _id: doc._id }, { $pull: { items: condition } })
-  if (result.modifiedCount === 0) {
+  // syarat ditaruh di filter dokumen, bukan di dalam $pull: model ber-timestamps selalu menambah
+  // $set updatedAt, sehingga modifiedCount tetap 1 walau $pull tidak menghapus apa pun
+  const result = await Checklist.updateOne(
+    { _id: doc._id, items: { $elemMatch: condition } },
+    { $pull: { items: { _id: item._id } } },
+  )
+  if (result.matchedCount === 0) {
     throw new AppError('Barang ini hanya bisa dihapus Ketua atau penambahnya selama belum diklaim', 'FORBIDDEN', 403)
   }
   res.json({ message: 'Barang dihapus' })
@@ -213,8 +218,8 @@ export async function claimItem(req, res) {
   if (!item) throw itemNotFound()
 
   const me = new ObjectId(req.user.id)
-  // syarat "belum diklaim" dipasang di filter dokumen ($elemMatch) DAN di arrayFilters:
-  // dokumen hanya ditulis kalau barangnya masih bebas tepat saat penulisan
+  // syarat "belum diklaim" WAJIB ada di filter dokumen ($elemMatch): model ber-timestamps selalu
+  // menambah $set updatedAt, jadi tanpa itu modifiedCount bernilai 1 walau arrayFilters tidak cocok
   const result = await Checklist.updateOne(
     { _id: doc._id, items: { $elemMatch: { _id: item._id, owner_id: null } } },
     { $set: { 'items.$[it].owner_id': me } },
