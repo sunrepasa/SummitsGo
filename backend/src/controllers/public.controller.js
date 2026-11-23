@@ -4,6 +4,7 @@ import { AppError } from '../utils/AppError.js'
 import { toDateOnly } from '../utils/date.js'
 import { setLike } from '../utils/likes.js'
 import { likeState, mountainMap, toPublicCard } from '../utils/logbookView.js'
+import { notifyLike } from '../utils/notify.js'
 
 // entri yang boleh dilihat publik: dipublikkan, bukan draf, dan sudah punya slug
 const PUBLIC_ENTRY = { isPublic: true, isDraft: false, slug: { $type: 'string' } }
@@ -96,9 +97,10 @@ export async function likePublicEntry(req, res) {
   const doc = await Logbook.findOne(publicEntryBySlug(req.params.slug)).select('_id user_id').lean()
   if (!doc) throw entryNotFound()
 
-  await setLike(doc._id, req.user.id, req.method === 'PUT')
-  // Fase 7: bila suka baru dan penyuka bukan pemilik, buat notifikasi entry_liked untuk pemilik
+  const changed = await setLike(doc._id, req.user.id, req.method === 'PUT')
 
-  const fresh = await Logbook.findById(doc._id).select('likes likedBy').lean()
+  const fresh = await Logbook.findById(doc._id).select('user_id mountain_id likes likedBy').lean()
+  // hanya suka yang benar-benar baru; batal suka tidak menghapus notifikasi yang sudah ada
+  if (changed && req.method === 'PUT') await notifyLike(fresh, req.user.id)
   res.json(likeState(fresh, req.user.id))
 }

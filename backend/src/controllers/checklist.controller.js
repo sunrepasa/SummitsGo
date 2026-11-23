@@ -9,6 +9,7 @@ import User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
 import { checklistDetail, checklistSummaries } from '../utils/checklistView.js'
 import { parseDay, toDateOnly } from '../utils/date.js'
+import { notifyInvite } from '../utils/notify.js'
 import { findMountain } from './mountain.controller.js'
 
 const { ObjectId } = mongoose.Types
@@ -319,7 +320,7 @@ export async function inviteUser(req, res) {
     if (err.code === 11000) throw new AppError('Sudah diundang', 'ALREADY_INVITED', 409)
     throw err
   }
-  // Fase 7: buat notifikasi checklist_invite untuk pengguna yang diundang
+  await notifyInvite(doc, req.user.id, user._id)
 
   res.status(201).json({ id: String(invitation._id), userId: String(user._id), username: user.username, name: user.name })
 }

@@ -5,6 +5,7 @@ import User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
 import { toDay } from '../utils/date.js'
 import { mountainMap } from '../utils/logbookView.js'
+import { notifyMemberJoined } from '../utils/notify.js'
 
 const { ObjectId } = mongoose.Types
 
@@ -66,9 +67,9 @@ export async function acceptInvitation(req, res) {
     throw invitationNotFound()
   }
 
-  await addMember(invitation.checklist_id, me)
+  const joined = await addMember(invitation.checklist_id, me)
   await Invitation.updateOne({ _id: invitation._id }, { $set: { status: 'accepted' } })
-  // Fase 7: buat notifikasi member_joined untuk Ketua bila benar-benar baru bergabung
+  if (joined) await notifyMemberJoined(await Checklist.findById(invitation.checklist_id).lean(), me)
   res.json({ checklistId: String(invitation.checklist_id) })
 }
 
@@ -117,9 +118,10 @@ export async function joinByCode(req, res) {
   if (!doc) throw invalidLink()
   const me = new ObjectId(req.user.id)
 
-  await addMember(doc._id, me)
+  const joined = await addMember(doc._id, me)
   // undangan langsung yang masih pending untuk checklist ini ikut dianggap diterima
   await Invitation.updateMany({ checklist_id: doc._id, invitedUser_id: me, status: 'pending' }, { $set: { status: 'accepted' } })
-  // Fase 7: buat notifikasi member_joined untuk Ketua bila benar-benar baru bergabung
+  // hanya bila benar-benar baru bergabung, supaya membuka tautan berulang tidak memberi notifikasi ganda
+  if (joined) await notifyMemberJoined(doc, me)
   res.json({ checklistId: String(doc._id) })
 }

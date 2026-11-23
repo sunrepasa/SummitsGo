@@ -8,6 +8,7 @@ import promotionRoutes from './promotion.routes.js'
 import logbookRoutes from './logbook.routes.js'
 import checklistRoutes from './checklist.routes.js'
 import { inviteLinkRoutes, invitationRoutes, templateRoutes } from './invitation.routes.js'
+import notificationRoutes from './notification.routes.js'
 
 const router = Router()
 
@@ -19,6 +20,7 @@ router.use('/checklists', checklistRoutes)
 router.use('/checklist-templates', templateRoutes)
 router.use('/invitations', invitationRoutes)
 router.use('/invites', inviteLinkRoutes)
+router.use('/notifications', notificationRoutes)
 router.use('/public', publicRoutes)
 router.use('/promotions', promotionRoutes)
 

@@ -8,6 +8,7 @@ import { AppError } from '../utils/AppError.js'
 import { addDays, latestTodayInIndonesia, parseDay } from '../utils/date.js'
 import { setLike } from '../utils/likes.js'
 import { likeState, mountainMap, ownerEntries, ownerEntry, toDraft } from '../utils/logbookView.js'
+import { notifyTripVerified } from '../utils/notify.js'
 import { deletePhotoFiles, savePhoto, toPhoto } from '../utils/photos.js'
 import { findMountain } from './mountain.controller.js'
 
@@ -48,7 +49,7 @@ export async function confirmDraft(req, res) {
     { returnDocument: 'after' },
   ).lean()
   if (!updated) throw draftNotFound()
-  // Fase 7: buat notifikasi trip_verified untuk pemilik
+  await notifyTripVerified(updated)
   res.json(await ownerEntry(updated, req.user.id))
 }
 

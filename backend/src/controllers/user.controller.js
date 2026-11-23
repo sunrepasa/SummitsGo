@@ -3,6 +3,7 @@ import Checklist from '../models/Checklist.js'
 import ChecklistTemplate from '../models/ChecklistTemplate.js'
 import Invitation from '../models/Invitation.js'
 import Logbook from '../models/Logbook.js'
+import Notification from '../models/Notification.js'
 import User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
 import { checkPassword, hashPassword } from '../utils/password.js'
@@ -109,7 +110,7 @@ export async function deleteMe(req, res) {
   })
   await ChecklistTemplate.deleteMany({ user_id: me })
 
-  // Fase 7 menambah langkah di sini: hapus notifikasinya.
+  await Notification.deleteMany({ user_id: me })
 
   // token lama otomatis tidak berlaku: middleware auth menolak akun yang sudah tidak ada
   res.json({ message: 'Akun berhasil dihapus' })

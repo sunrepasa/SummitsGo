@@ -209,3 +209,8 @@ export const userSearchQuerySchema = z.strictObject({
   checklistId: z.preprocess(blankToUndefined, objectIdSchema.optional()),
   limit: z.preprocess(blankToUndefined, z.coerce.number('limit harus angka').int().min(1).max(5, 'limit maksimal 5').optional()),
 })
+
+// DELETE /notifications?status=read — tanpa status berarti hapus semua
+export const notificationDeleteQuerySchema = z.strictObject({
+  status: z.enum(['read'], 'status hanya boleh "read"').optional(),
+})

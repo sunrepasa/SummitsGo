@@ -137,7 +137,12 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 | POST | `/invitations/:id/accept`, `/invitations/:id/decline` | ya | jadi |
 | GET | `/invites/:code` | tidak (opsional) | jadi |
 | POST | `/invites/:code/join` | ya | jadi |
-| Notifikasi (7) | | | Fase 7 |
+| GET | `/notifications` | ya | jadi (terbaru di atas, `createdAt` milidetik) |
+| GET | `/notifications/unread-count` | ya | jadi (`{ count }`) |
+| PATCH | `/notifications/:id/read` | ya | jadi |
+| POST | `/notifications/read-all` | ya | jadi |
+| DELETE | `/notifications/:id` | ya | jadi |
+| DELETE | `/notifications` (`?status=read` = yang sudah dibaca saja) | ya | jadi |
 | Admin (8) | | admin | Fase 8 |
 
 ### Kode error
@@ -167,3 +172,4 @@ Spesifikasi lengkap ada di dokumen SRS/SDS Bagian 3.3. "Token" = wajib header `A
 - Ulasan baru berstatus `pending` dan baru tampil setelah disetujui admin. Rating gunung dihitung dari ulasan yang disetujui.
 - Data yang belum terverifikasi (harga, kontak, koordinat jalur) sengaja dibiarkan `null`, bukan ditebak.
 - Backend tidak menyimpan posisi pengguna. Live Location dihitung di browser.
+- Notifikasi selalu dibuat server: undangan checklist, anggota bergabung, draf terverifikasi, entri disukai, dan pengingat rencana (dicek saat notifikasi dibuka, untuk rencana yang tinggal 3 hari atau kurang). Lencana tidak memicu notifikasi karena dihitung di frontend.

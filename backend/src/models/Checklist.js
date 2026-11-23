@@ -9,6 +9,9 @@ const memberSchema = new Schema(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     role: { type: String, enum: ['leader', 'member'], required: true },
+    // kapan pengingat rencana (plan_reminder) sudah dikirim ke anggota ini; null = belum.
+    // Disimpan per anggota supaya pengingat yang sudah dihapus pengguna tidak dibuat ulang.
+    remindedAt: { type: Date, default: null },
   },
   { _id: false },
 )

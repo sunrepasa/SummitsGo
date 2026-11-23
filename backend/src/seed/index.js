@@ -6,9 +6,11 @@ import Checklist from '../models/Checklist.js'
 import ChecklistTemplate from '../models/ChecklistTemplate.js'
 import Logbook from '../models/Logbook.js'
 import Mountain from '../models/Mountain.js'
+import Notification from '../models/Notification.js'
 import Review from '../models/Review.js'
 import Route from '../models/Route.js'
 import User from '../models/User.js'
+import { newBadgesFrom } from '../utils/badges.js'
 import { addDays, parseDay } from '../utils/date.js'
 import { recalcMountainRating } from '../utils/mountainRating.js'
 import { demoLogbooks } from './data/logbooks.js'
@@ -122,6 +124,30 @@ async function seedChecklists() {
   console.log(`Template bawaan: ${systemTemplates.length}, checklist demo: 1 (kode undangan ${demoChecklist.inviteCode})`)
 }
 
+// Notifikasi demo sayz: hanya yang memang benar menurut data seed, yaitu entri Batur yang terverifikasi
+// dan lencana yang didapat darinya (dihitung dengan aturan yang sama seperti saat aplikasi berjalan).
+// Kunci = pemilik + tujuan + teks, dibuat sekali ($setOnInsert): yang sudah dibaca atau dihapus saat uji
+// tidak dikembalikan sebagai belum dibaca, kecuali dihapus lalu seed dijalankan lagi.
+async function seedNotifications() {
+  const owner = await User.findOne({ username: 'sayz' }).select('_id').lean()
+  const verified = owner && (await Logbook.findOne({ user_id: owner._id, verified: true, isDraft: false, slug: { $exists: true } }).lean())
+  if (!verified) return console.log('Notifikasi demo: 0')
+
+  const mountain = await Mountain.findById(verified.mountain_id).select('name').lean()
+  const items = (await newBadgesFrom(owner._id, verified._id)).map((badge) => ({
+    type: 'badge_earned',
+    text: badge.id === 'rookie' ? 'Kamu mendapat lencana Rookie. Selamat atas pendakian pertamamu!' : `Kamu mendapat lencana ${badge.label}. Selamat!`,
+    to: '/profile',
+  }))
+  items.push({ type: 'trip_verified', text: `Pendakian ${mountain.name} terverifikasi dan masuk ke logbook-mu.`, to: `/logbook/${verified._id}` })
+
+  for (const item of items) {
+    const key = { user_id: owner._id, to: item.to, text: item.text }
+    await Notification.updateOne(key, { $setOnInsert: { type: item.type, read: false, createdAt: new Date() } }, { upsert: true })
+  }
+  console.log(`Notifikasi demo: ${items.length}`)
+}
+
 try {
   await connectDB()
   await seedUsers()
@@ -129,6 +155,7 @@ try {
   await seedLogbooks() // sebelum ulasan: label terverifikasi ulasan bergantung pada logbook
   await seedReviews()
   await seedChecklists()
+  await seedNotifications()
   console.log('Seed selesai')
 } catch (err) {
   console.error('Seed gagal:', err.message)
